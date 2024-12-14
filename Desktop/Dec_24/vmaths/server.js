@@ -26,6 +26,15 @@ mongoose.connect('mongodb://localhost:27017/vmaths', { useNewUrlParser: true, us
 
   const User = mongoose.model('User', UserSchema);
 
+  const QuestionSchema = new mongoose.Schema({
+    question: { type: String, required: true },
+    correctAnswer: { type: String, required: true },
+    createdAt: { type: Date, default: Date.now },
+  });
+  
+  const Question = mongoose.model('Question', QuestionSchema);
+  
+
   // Signup
   app.post('/signup', async (req, res) => {
     const { firstName, lastName, dob, mobile, email, password } = req.body;
@@ -81,10 +90,32 @@ app.post('/updateProfile', async (req, res) => {
 // Save question and correct answer
 app.post('/saveQuestion', async (req, res) => {
   const { question, correctAnswer } = req.body;
-  // Handle saving the question and correct answer in the database
-  // Example: Save it in a game history collection or log
-  res.status(200).send('Question saved');
+  
+  // Validate that both question and correctAnswer are provided
+  if (!question || !correctAnswer) {
+    return res.status(400).send('Question and correct answer are required.');
+  }
+
+  try {
+    const newQuestion = new Question({ question, correctAnswer });
+    await newQuestion.save();
+    res.status(200).send('Question saved successfully');
+  } catch (error) {
+    console.error(error);
+    res.status(500).send('Error saving question');
+  }
 });
+
+app.get('/getQuestions', async (req, res) => {
+  try {
+    const questions = await Question.find();
+    res.status(200).json(questions);
+  } catch (error) {
+    console.error(error);
+    res.status(500).send('Error fetching questions');
+  }
+});
+
 
 // Update user score
 app.post('/updateScore', async (req, res) => {
@@ -101,7 +132,35 @@ app.post('/updateScore', async (req, res) => {
   }
 });
 
+const LeaderboardSchema = new mongoose.Schema({
+  username: String,
+  score: Number,
+  date: { type: Date, default: Date.now },
+});
 
+const Leaderboard = mongoose.model('Leaderboard', LeaderboardSchema);
+
+app.post('/submitScore', async (req, res) => {
+  const { username, score } = req.body;
+  const newScore = new Leaderboard({ username, score });
+  await newScore.save();
+  res.status(200).send('Score submitted');
+});
+
+app.get('/leaderboard', async (req, res) => {
+  const topScores = await Leaderboard.find().sort({ score: -1 }).limit(10);
+  res.json(topScores);
+});
+
+let users = {};
+
+app.post('/updateUserScore', (req, res) => {
+  const { userId, score } = req.body;
+  if (!users[userId]) users[userId] = 0;
+  users[userId] += score;
+  console.log(`User ${userId} score updated to ${users[userId]}`);
+  res.status(200).send('Score updated');
+});
 
 
 app.listen(5000, () => {

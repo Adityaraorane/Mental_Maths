@@ -44,7 +44,7 @@ class GenerateQuestionScreenState extends State<GenerateQuestionScreen> {
         builder: (context) => GameScreen(
           numOperations: numOperations,
           timeInterval: timeInterval,
-          difficulty: _difficulty,
+          difficulty: _difficulty, userEmail: 'widget.userEmail',
         ),
       ),
     );
