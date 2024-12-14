@@ -64,21 +64,32 @@ class ApiService {
   }
 
   // Update user score
-  Future<bool> updateUserScore(String email, int scoreIncrement) async {
-    try {
-      final response = await http.post(
-        Uri.parse('$baseUrl/updateScore'),
-        headers: {'Content-Type': 'application/json'},
-        body: json.encode({
-          'email': email,
-          'scoreIncrement': scoreIncrement,
-        }),
-      );
+Future<bool> updateUserScore(String userEmail, int points) async {
+  try {
+    // Add timeout to prevent hanging
+    final response = await http.post(
+      Uri.parse('your_api_endpoint'),
+      body: {
+        'email': userEmail,
+        'points': points.toString()
+      },
+    ).timeout(
+      const Duration(seconds: 10), // const is used here because Duration is a compile-time constant
+      onTimeout: () {
+        print('Connection timed out');
+        return http.Response('Timeout', 408);
+      },
+    );
 
-      return response.statusCode == 200;
-    } catch (e) {
-      print('Update score error: $e');
+    if (response.statusCode == 200) {
+      return true;
+    } else {
+      print('Failed to update score. Status code: ${response.statusCode}');
       return false;
     }
+  } catch (e) {
+    print('Error updating score: $e');
+    return false;
   }
+}
 }

@@ -3,6 +3,7 @@ import 'dart:math';
 import 'package:flutter/material.dart';
 import 'package:flutter/foundation.dart';
 import 'package:share_plus/share_plus.dart';
+import 'package:vmaths/screens/generate_questions.dart';
 import 'package:vmaths/services/api.dart';
 
 class GameScreen extends StatefulWidget {
@@ -248,37 +249,43 @@ class GameScreenState extends State<GameScreen> {
   }
 
   void _showResultDialog(BuildContext context, String title, String content) {
-    showDialog(
-      context: context,
-      barrierDismissible: false,
-      builder: (ctx) => AlertDialog(
-        title: Text(
-          title, 
-          style: TextStyle(
-            color: title == 'Correct!' ? Colors.green : Colors.red
-          )
-        ),
-        content: Text(content),
-        actions: [
-          TextButton(
-            onPressed: () {
-              // Close the dialog
-              Navigator.of(ctx).pop();
-              // Reset the game
-              _initializeGame();
-            },
-            child: const Text('Play Again'),
-          ),
-          TextButton(
-            onPressed: () {
-              _shareResult(content);
-            },
-            child: const Text('Share'),
-          ),
-        ],
+  showDialog(
+    context: context,
+    barrierDismissible: false,
+    builder: (ctx) => AlertDialog(
+      title: Text(
+        title, 
+        style: TextStyle(
+          color: title == 'Correct!' ? Colors.green : Colors.red
+        )
       ),
-    );
-  }
+      content: Text(content),
+      actions: [
+        TextButton(
+          onPressed: () {
+            // Close the dialog
+            Navigator.of(ctx).pop();
+            
+            // Navigate back to GenerateQuestionScreen and reset
+            Navigator.of(context).pushAndRemoveUntil(
+              MaterialPageRoute(
+                builder: (context) => GenerateQuestionScreen(shouldReset: true),
+              ),
+              (route) => false,
+            );
+          },
+          child: const Text('Play Again'),
+        ),
+        TextButton(
+          onPressed: () {
+            _shareResult(content);
+          },
+          child: const Text('Share'),
+        ),
+      ],
+    ),
+  );
+}
 
   void _shareResult(String content) {
     Share.share(

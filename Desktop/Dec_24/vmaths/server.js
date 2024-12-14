@@ -8,7 +8,7 @@ app.use(cors());
 app.use(bodyParser.json());
 
 // MongoDB connection
-mongoose.connect('mongodb://localhost:27017/vmaths', { useNewUrlParser: true, useUnifiedTopology: true })
+mongoose.connect('mongodb+srv://2022adityaraorane:2022adityaraorane@mentalmaths.7zqt9.mongodb.net/', { useNewUrlParser: true, useUnifiedTopology: true })
   .then(() => console.log('MongoDB connected'))
   .catch(err => console.log(err));
 

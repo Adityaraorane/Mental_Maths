@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'screens/login.dart';
 import 'screens/signup.dart';
 import 'screens/home.dart';
+import 'screens/Leaderboard.dart';
 
 void main() {
   runApp(MyApp());
@@ -21,6 +22,7 @@ class MyApp extends StatelessWidget {
         '/login': (context) => const LoginScreen(),
         '/signup': (context) => SignupScreen(),
         '/home': (context) => const HomeScreen(),
+        '/leaderboard': (context) => LeaderboardScreen(),
       },
     );
   }

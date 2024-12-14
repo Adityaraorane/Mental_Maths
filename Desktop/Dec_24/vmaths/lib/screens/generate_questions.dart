@@ -2,7 +2,12 @@ import 'package:flutter/material.dart';
 import 'game.dart';
 
 class GenerateQuestionScreen extends StatefulWidget {
-  const GenerateQuestionScreen({super.key});
+  final bool shouldReset;
+
+  const GenerateQuestionScreen({
+    super.key, 
+    this.shouldReset = false
+  });
 
   @override
   GenerateQuestionScreenState createState() => GenerateQuestionScreenState();
@@ -12,6 +17,24 @@ class GenerateQuestionScreenState extends State<GenerateQuestionScreen> {
   final TextEditingController _operationsController = TextEditingController();
   final TextEditingController _intervalController = TextEditingController();
   String _difficulty = 'Easy'; // Default difficulty
+
+  @override
+  void initState() {
+    super.initState();
+    
+    // Reset fields if shouldReset is true
+    if (widget.shouldReset) {
+      _resetFields();
+    }
+  }
+
+  void _resetFields() {
+    setState(() {
+      _operationsController.clear();
+      _intervalController.clear();
+      _difficulty = 'Easy';
+    });
+  }
 
   void _startGame() {
     String operationsText = _operationsController.text.trim();
