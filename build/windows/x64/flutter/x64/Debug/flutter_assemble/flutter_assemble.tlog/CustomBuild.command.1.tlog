@@ -1,0 +1,28 @@
+^C:\USERS\ADITY\DESKTOP\DEC_24\VMATHS\BUILD\WINDOWS\X64\CMAKEFILES\35FBA53F83739CF8CBAF86D0E48E5A48\FLUTTER_WINDOWS.DLL.RULE
+setlocal
+"C:\Program Files\Microsoft Visual Studio\2022\Community\Common7\IDE\CommonExtensions\Microsoft\CMake\CMake\bin\cmake.exe" -E env FLUTTER_ROOT=C:\Users\adity\Flutter\flutter PROJECT_DIR=C:\Users\adity\Desktop\Dec_24\vmaths FLUTTER_ROOT=C:\Users\adity\Flutter\flutter FLUTTER_EPHEMERAL_DIR=C:\Users\adity\Desktop\Dec_24\vmaths\windows\flutter\ephemeral PROJECT_DIR=C:\Users\adity\Desktop\Dec_24\vmaths FLUTTER_TARGET=C:\Users\adity\Desktop\Dec_24\vmaths\lib\main.dart DART_OBFUSCATION=false TRACK_WIDGET_CREATION=true TREE_SHAKE_ICONS=false PACKAGE_CONFIG=C:\Users\adity\Desktop\Dec_24\vmaths\.dart_tool\package_config.json C:/Users/adity/Flutter/flutter/packages/flutter_tools/bin/tool_backend.bat windows-x64 Debug
+if %errorlevel% neq 0 goto :cmEnd
+:cmEnd
+endlocal & call :cmErrorLevel %errorlevel% & goto :cmDone
+:cmErrorLevel
+exit /b %1
+:cmDone
+if %errorlevel% neq 0 goto :VCEnd
+^C:\USERS\ADITY\DESKTOP\DEC_24\VMATHS\BUILD\WINDOWS\X64\CMAKEFILES\44CB303B0F5445C164A8AB2EB465C6CF\FLUTTER_ASSEMBLE.RULE
+setlocal
+:cmEnd
+endlocal & call :cmErrorLevel %errorlevel% & goto :cmDone
+:cmErrorLevel
+exit /b %1
+:cmDone
+if %errorlevel% neq 0 goto :VCEnd
+^C:\USERS\ADITY\DESKTOP\DEC_24\VMATHS\WINDOWS\FLUTTER\CMAKELISTS.TXT
+setlocal
+"C:\Program Files\Microsoft Visual Studio\2022\Community\Common7\IDE\CommonExtensions\Microsoft\CMake\CMake\bin\cmake.exe" -SC:/Users/adity/Desktop/Dec_24/vmaths/windows -BC:/Users/adity/Desktop/Dec_24/vmaths/build/windows/x64 --check-stamp-file C:/Users/adity/Desktop/Dec_24/vmaths/build/windows/x64/flutter/CMakeFiles/generate.stamp
+if %errorlevel% neq 0 goto :cmEnd
+:cmEnd
+endlocal & call :cmErrorLevel %errorlevel% & goto :cmDone
+:cmErrorLevel
+exit /b %1
+:cmDone
+if %errorlevel% neq 0 goto :VCEnd
