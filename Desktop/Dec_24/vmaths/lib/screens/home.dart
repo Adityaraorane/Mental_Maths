@@ -8,6 +8,19 @@ import 'generate_questions.dart';
 class HomeScreen extends StatelessWidget {
   const HomeScreen({super.key});
 
+  Future<void> _logout(BuildContext context) async {
+    final SharedPreferences prefs = await SharedPreferences.getInstance();
+
+    // Clear the saved user data
+    await prefs.remove('userEmail'); // This will remove the stored email
+
+    // Optionally, you can also clear all data from SharedPreferences
+    // await prefs.clear(); 
+
+    // Navigate to login screen
+    Navigator.pushReplacementNamed(context, '/login');
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -102,10 +115,7 @@ class HomeScreen extends StatelessWidget {
               title: const Text('Log Out'),
               leading: const Icon(Icons.logout),
               onTap: () async {
-                SharedPreferences prefs = await SharedPreferences.getInstance();
-                await prefs.remove('userEmail'); // Remove email from SharedPreferences
-
-                Navigator.pushReplacementNamed(context, '/login'); // Navigate to login screen
+                await _logout(context);
               },
             ),
           ],

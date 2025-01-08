@@ -31,6 +31,9 @@ class LoginScreenState extends State<LoginScreen> {
         SharedPreferences prefs = await SharedPreferences.getInstance();
         await prefs.setString('userEmail', email);
 
+        // Print the user's email
+        print('User logged in with email: $email');
+
         Navigator.pushReplacementNamed(context, '/home');
       } else {
         ScaffoldMessenger.of(context).showSnackBar(
@@ -46,6 +49,10 @@ class LoginScreenState extends State<LoginScreen> {
 
   Future<void> _loginWithGoogle() async {
     try {
+      // Sign out the current user to allow account selection
+      await _googleSignIn.signOut();
+
+      // Prompt the user to select a Google account
       final GoogleSignInAccount? googleUser = await _googleSignIn.signIn();
       if (googleUser != null) {
         // Access the user's details
@@ -56,11 +63,11 @@ class LoginScreenState extends State<LoginScreen> {
         SharedPreferences prefs = await SharedPreferences.getInstance();
         await prefs.setString('userEmail', email!);
 
+        // Print the user's details
+        print('User logged in with Google: Name: $name, Email: $email');
+
         // Navigate to the home screen
         Navigator.pushReplacementNamed(context, '/home');
-
-        // Log user details (optional)
-        print('Google Sign-In successful: Name: $name, Email: $email');
       }
     } catch (error) {
       ScaffoldMessenger.of(context).showSnackBar(
