@@ -1,6 +1,7 @@
 import 'dart:async';
 import 'dart:math';
 import 'package:flutter/material.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 import 'package:vmaths/services/api.dart';// Import the ApiService class
 
 class Level1 extends StatefulWidget {
@@ -79,8 +80,9 @@ class _Level1State extends State<Level1> {
   void checkAnswer() async {
   int userAnswer = int.tryParse(answerController.text) ?? 0;
   
-  // Assuming you have a way to get the user's email
-  String userEmail = 'adityanraorane@gmail.com';  // Replace with the actual email or fetch it from your app's auth system
+  // Retrieve the email from SharedPreferences
+  SharedPreferences prefs = await SharedPreferences.getInstance();
+  String userEmail = prefs.getString('userEmail') ?? ''; // Default to empty string if email is not found
 
   // Save the question data to MongoDB
   bool isSaved = await apiService.saveQuestion(
@@ -88,31 +90,32 @@ class _Level1State extends State<Level1> {
     operations.join(' '), // Join the operations into a single string
     result,
     userAnswer,
-    userEmail,  // Add the missing argument (userEmail)
+    userEmail,  // Use the email retrieved from SharedPreferences
   );
 
-    if (userAnswer == result) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('✅ Correct! +10 points')),
-      );
-    } else {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('❌ Wrong! Correct answer: $result')),
-      );
-    }
-
-    if (isSaved) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Question saved to database!')),
-      );
-    } else {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Error saving question to database')),
-      );
-    }
-
-    Navigator.pop(context);
+  if (userAnswer == result) {
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(content: Text('✅ Correct! +10 points')),
+    );
+  } else {
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(content: Text('❌ Wrong! Correct answer: $result')),
+    );
   }
+
+  if (isSaved) {
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(content: Text('Question saved to database!')),
+    );
+  } else {
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(content: Text('Error saving question to database')),
+    );
+  }
+
+  Navigator.pop(context);
+}
+
 
   @override
   Widget build(BuildContext context) {

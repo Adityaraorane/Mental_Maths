@@ -15,28 +15,29 @@ class LoginScreenState extends State<LoginScreen> {
   final ApiService _apiService = ApiService();
   bool _isPasswordVisible = false;
 
-  Future<void> _login() async {
-    String email = _emailController.text.trim();
-    String password = _passwordController.text;
+Future<void> _login() async {
+  String email = _emailController.text.trim();
+  String password = _passwordController.text;
 
-    try {
-      bool success = (await _apiService.login(email, password)) as bool;
-      if (success) {
-        SharedPreferences prefs = await SharedPreferences.getInstance();
-        await prefs.setString('userEmail', email);
+  try {
+    bool success = (await _apiService.login(email, password)) as bool;
+    if (success) {
+      SharedPreferences prefs = await SharedPreferences.getInstance();
+      await prefs.setString('userEmail', email);  // Store email
 
-        Navigator.pushReplacementNamed(context, '/home');
-      } else {
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Invalid email or password')),
-        );
-      }
-    } catch (e) {
+      Navigator.pushReplacementNamed(context, '/home');
+    } else {
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Error: $e')),
+        const SnackBar(content: Text('Invalid email or password')),
       );
     }
+  } catch (e) {
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(content: Text('Error: $e')),
+    );
   }
+}
+
 
   @override
   Widget build(BuildContext context) {
