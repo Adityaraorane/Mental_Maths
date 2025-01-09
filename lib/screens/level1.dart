@@ -2,7 +2,8 @@ import 'dart:async';
 import 'dart:math';
 import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
-import 'package:vmaths/services/api.dart';// Import the ApiService class
+import 'package:vmaths/services/api.dart';
+import 'package:share_plus/share_plus.dart'; // Import share_plus for sharing functionality
 
 class Level1 extends StatefulWidget {
   final int level;
@@ -20,7 +21,7 @@ class _Level1State extends State<Level1> {
   String currentDisplay = '';
   TextEditingController answerController = TextEditingController();
   int currentIndex = 0;
-  ApiService apiService = ApiService(); // Create an instance of ApiService
+  ApiService apiService = ApiService();
 
   @override
   void initState() {
@@ -30,38 +31,32 @@ class _Level1State extends State<Level1> {
 
   void generateOperations() {
     Random random = Random();
-    int numOperations = random.nextInt(6) + 3; // Between 3 and 8 operators
-    int currentValue = random.nextInt(9) + 1; // Start with a random number between 1 and 9
+    int numOperations = random.nextInt(6) + 3;
+    int currentValue = random.nextInt(9) + 1;
     List<String> ops = ['+', '-'];
     operations.add(currentValue.toString());
 
-    // Generate the sequence
     for (int i = 0; i < numOperations; i++) {
       String operation = ops[random.nextInt(2)];
       int nextNum;
       do {
         nextNum = random.nextInt(9) + 1;
-      } while (operations.contains('$operation$nextNum')); // Avoid repetition like +9, -9
+      } while (operations.contains('$operation$nextNum'));
       operations.add(operation);
       operations.add(nextNum.toString());
     }
 
-    // Calculate the result
     result = int.parse(operations[0]);
     for (int i = 1; i < operations.length; i += 2) {
       int num = int.parse(operations[i + 1]);
-      if (operations[i] == '+') {
-        result += num;
-      } else {
-        result -= num;
-      }
+      result += (operations[i] == '+') ? num : -num;
     }
 
     startDisplaySequence();
   }
 
   void startDisplaySequence() {
-    Timer.periodic(Duration(seconds: 2), (timer) {
+    Timer.periodic(const Duration(seconds: 2), (timer) {
       if (currentIndex < operations.length) {
         setState(() {
           currentDisplay = operations[currentIndex];
@@ -77,45 +72,76 @@ class _Level1State extends State<Level1> {
     });
   }
 
+  void shareScore() {
+    Share.share('I scored $result in Level ${widget.level}! Can you beat my score? 🏆');
+  }
+
   void checkAnswer() async {
-  int userAnswer = int.tryParse(answerController.text) ?? 0;
-  
-  // Retrieve the email from SharedPreferences
-  SharedPreferences prefs = await SharedPreferences.getInstance();
-  String userEmail = prefs.getString('userEmail') ?? ''; // Default to empty string if email is not found
+    int userAnswer = int.tryParse(answerController.text) ?? 0;
+    SharedPreferences prefs = await SharedPreferences.getInstance();
+    String userEmail = prefs.getString('userEmail') ?? '';
 
-  // Save the question data to MongoDB
-  bool isSaved = await apiService.saveQuestion(
-    widget.level,
-    operations.join(' '), // Join the operations into a single string
-    result,
-    userAnswer,
-    userEmail,  // Use the email retrieved from SharedPreferences
-  );
+    bool isSaved = await apiService.saveQuestion(
+      widget.level,
+      operations.join(' '),
+      result,
+      userAnswer,
+      userEmail,
+    );
 
-  if (userAnswer == result) {
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(content: Text('✅ Correct! +10 points')),
+    bool isCorrect = userAnswer == result;
+
+    showDialog(
+      context: context,
+      builder: (BuildContext context) {
+        return AlertDialog(
+          title: Text(isCorrect ? '✅ Correct!' : '❌ Incorrect!'),
+          content: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              if (!isCorrect) Text('Correct Answer: $result'),
+              const SizedBox(height: 20),
+              Text(isCorrect ? 'Good job! 🎉' : 'Try again!'),
+            ],
+          ),
+          actions: [
+            if (isCorrect) ...[
+              TextButton(
+                onPressed: shareScore, // Share Button Functionality
+                child: const Text('Share Score'),
+              ),
+              TextButton(
+                onPressed: () {
+                  Navigator.pop(context);
+                  setState(() {
+                    generateOperations();
+                  });
+                },
+                child: const Text('Play Again'),
+              ),
+            ],
+            TextButton(
+              onPressed: () {
+                Navigator.pop(context);
+                Navigator.pushNamed(context, '/rapid_fire'); // Return to Home Button
+              },
+              child: const Text('Return to Home'),
+            ),
+          ],
+        );
+      },
     );
-  } else {
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(content: Text('❌ Wrong! Correct answer: $result')),
-    );
+
+    if (isSaved) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Question saved to the database!')),
+      );
+    } else {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Error saving question to the database.')),
+      );
+    }
   }
-
-  if (isSaved) {
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(content: Text('Question saved to database!')),
-    );
-  } else {
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(content: Text('Error saving question to database')),
-    );
-  }
-
-  Navigator.pop(context);
-}
-
 
   @override
   Widget build(BuildContext context) {
@@ -126,7 +152,7 @@ class _Level1State extends State<Level1> {
       ),
       body: Container(
         color: Colors.blue[50],
-        padding: EdgeInsets.all(16.0),
+        padding: const EdgeInsets.all(16.0),
         child: Center(
           child: Column(
             mainAxisAlignment: MainAxisAlignment.center,
@@ -134,22 +160,43 @@ class _Level1State extends State<Level1> {
               if (currentDisplay.isNotEmpty)
                 Text(
                   currentDisplay,
-                  style: TextStyle(fontSize: 80, fontWeight: FontWeight.bold),
+                  style: const TextStyle(fontSize: 80, fontWeight: FontWeight.bold),
                 ),
               if (showAnswerBox)
                 Column(
                   children: [
-                    TextField(
-                      controller: answerController,
-                      decoration: InputDecoration(labelText: 'Enter your answer'),
-                      keyboardType: TextInputType.number,
+                    Container(
+                      padding: const EdgeInsets.all(8),
+                      decoration: BoxDecoration(
+                        border: Border.all(color: Colors.blue),
+                        borderRadius: BorderRadius.circular(12),
+                        boxShadow: [
+                          BoxShadow(color: Colors.blue.shade200, blurRadius: 8)
+                        ],
+                      ),
+                      child: TextField(
+                        controller: answerController,
+                        decoration: const InputDecoration(
+                          labelText: 'Enter your answer',
+                          border: InputBorder.none,
+                        ),
+                        keyboardType: TextInputType.number,
+                        textAlign: TextAlign.center,
+                      ),
                     ),
-                    SizedBox(height: 20),
+                    const SizedBox(height: 20),
                     ElevatedButton(
                       onPressed: checkAnswer,
-                      child: Text('Submit Answer'),
                       style: ElevatedButton.styleFrom(
-                        backgroundColor: Colors.blue[700],
+                        backgroundColor: Colors.green,
+                        padding: const EdgeInsets.symmetric(
+                            horizontal: 30, vertical: 15),
+                        shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(20)),
+                      ),
+                      child: const Text(
+                        'Submit Answer',
+                        style: TextStyle(fontSize: 18),
                       ),
                     ),
                   ],

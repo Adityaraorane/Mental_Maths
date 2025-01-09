@@ -71,7 +71,7 @@ class HomeScreen extends StatelessWidget {
             Navigator.push(context, MaterialPageRoute(builder: (context) => const LessonScreen()));
           }),
           _buildDrawerItem(Icons.leaderboard, 'Leaderboard', () {
-            Navigator.push(context, MaterialPageRoute(builder: (context) => LeaderboardScreen()));
+            Navigator.push(context, MaterialPageRoute(builder: (context) => Leaderboard()));
           }),
           _buildDrawerItem(Icons.lightbulb, 'Rapid Fire', () {
             Navigator.push(context, MaterialPageRoute(builder: (context) => RapidFireScreen()));

@@ -152,6 +152,14 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
       <Project>{D604B56B-9DC1-3560-BE99-9A7220A2BACE}</Project>
       <Name>flutter_wrapper_plugin</Name>
     </ProjectReference>
+    <ProjectReference Include="C:\Users\adity\Desktop\Dec_24\vmaths\build\windows\x64\plugins\share_plus\share_plus_plugin.vcxproj">
+      <Project>{DE945E9C-7485-306A-B7E1-E05C5BC3BC3B}</Project>
+      <Name>share_plus_plugin</Name>
+    </ProjectReference>
+    <ProjectReference Include="C:\Users\adity\Desktop\Dec_24\vmaths\build\windows\x64\plugins\url_launcher_windows\url_launcher_windows_plugin.vcxproj">
+      <Project>{E577341B-7147-34C3-A280-956382C30177}</Project>
+      <Name>url_launcher_windows_plugin</Name>
+    </ProjectReference>
     <ProjectReference Include="C:\Users\adity\Desktop\Dec_24\vmaths\build\windows\x64\runner\vmaths.vcxproj">
       <Project>{C9EF71F2-44E7-33AF-A2BA-3225E0E0CB87}</Project>
       <Name>vmaths</Name>

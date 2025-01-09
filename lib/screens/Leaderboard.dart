@@ -2,15 +2,13 @@ import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 import 'dart:convert';
 
-class LeaderboardScreen extends StatefulWidget {
-  const LeaderboardScreen({super.key});
-
+class Leaderboard extends StatefulWidget {
   @override
-  LeaderboardScreenState createState() => LeaderboardScreenState();
+  _LeaderboardState createState() => _LeaderboardState();
 }
 
-class LeaderboardScreenState extends State<LeaderboardScreen> {
-  List<Map<String, dynamic>> leaderboard = [];
+class _LeaderboardState extends State<Leaderboard> {
+  List<dynamic> players = [];
 
   @override
   void initState() {
@@ -20,19 +18,29 @@ class LeaderboardScreenState extends State<LeaderboardScreen> {
 
   Future<void> fetchLeaderboard() async {
     try {
-      final response = await http.get(Uri.parse('http://localhost:5000/leaderboard'));
+      final response = await http.get(Uri.parse('http://192.168.1.104:5000/leaderboard'));
       if (response.statusCode == 200) {
         setState(() {
-          leaderboard = List<Map<String, dynamic>>.from(json.decode(response.body));
+          players = json.decode(response.body);
         });
       } else {
         throw Exception('Failed to load leaderboard');
       }
-    } catch (error) {
-      print('Error: $error');
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Error loading leaderboard')),
-      );
+    } catch (e) {
+      print('Error fetching leaderboard: $e');
+    }
+  }
+
+  Widget getMedal(int index) {
+    switch (index) {
+      case 0:
+        return Icon(Icons.emoji_events, color: Colors.yellow, size: 30);
+      case 1:
+        return Icon(Icons.emoji_events, color: Colors.grey, size: 30);
+      case 2:
+        return Icon(Icons.emoji_events, color: Colors.brown, size: 30);
+      default:
+        return SizedBox(width: 30);
     }
   }
 
@@ -40,27 +48,26 @@ class LeaderboardScreenState extends State<LeaderboardScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Leaderboard'),
-        backgroundColor: Colors.blueAccent,
+        title: Text('Leaderboard'),
+        backgroundColor: Colors.blue,
       ),
-      body: leaderboard.isEmpty
-          ? const Center(child: CircularProgressIndicator())
+      body: players.isEmpty
+          ? Center(child: CircularProgressIndicator())
           : ListView.builder(
-              itemCount: leaderboard.length,
+              itemCount: players.length,
               itemBuilder: (context, index) {
-                final user = leaderboard[index];
                 return Card(
-                  margin: const EdgeInsets.symmetric(vertical: 8, horizontal: 16),
-                  elevation: 4,
+                  margin: EdgeInsets.symmetric(vertical: 10, horizontal: 20),
                   child: ListTile(
-                    leading: CircleAvatar(
-                      child: Text('${index + 1}'),
-                      backgroundColor: Colors.blueAccent,
-                      foregroundColor: Colors.white,
+                    leading: getMedal(index),
+                    title: Text(
+                      '${players[index]['firstName']} ${players[index]['lastName']}',
+                      style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
                     ),
-                    title: Text(user['name'], style: TextStyle(fontWeight: FontWeight.bold)),
-                    subtitle: Text('Points: ${user['points']}'),
-                    trailing: Icon(Icons.star, color: Colors.amber),
+                    trailing: Text(
+                      '${players[index]['points']} Points',
+                      style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+                    ),
                   ),
                 );
               },
