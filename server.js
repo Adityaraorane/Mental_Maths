@@ -32,12 +32,25 @@ const UserSchema = new mongoose.Schema({
 const User = mongoose.model('User', UserSchema);
 
 const QuestionSchema = new mongoose.Schema({
+    level: { type: Number, required: true },               // Level added here
     question: { type: String, required: true },
     correctAnswer: { type: String, required: true },
-    createdAt: { type: Date, default: Date.now }
+    userAnswer: { type: String, required: true },
+    pointsAwarded: { type: Number, default: 0 },            // Points added here
+    createdAt: { type: Date, default: Date.now }            // Automatically captured
 });
 
 const Question = mongoose.model('Question', QuestionSchema);
+
+const AssignmentSchema = new mongoose.Schema({
+    email: { type: String, required: true },
+    question: { type: String, required: true },
+    correctAnswer: { type: String, required: true },
+    createdAt: { type: Date, default: Date.now } // Automatically capture the date and time
+});
+
+const Assignment = mongoose.model('Assignment', AssignmentSchema);
+
 
 // Signup Endpoint
 app.post('/signup', async (req, res) => {
@@ -89,35 +102,43 @@ app.get('/profile', async (req, res) => {
 app.post('/saveQuestion', async (req, res) => {
     const { level, question, correctAnswer, userAnswer, email } = req.body;
   
-    console.log('Request body:', req.body); // Add this line to see the incoming data
-  
     let pointsAwarded = 0;
-    if (userAnswer === correctAnswer) {
-      pointsAwarded = 5; // Add points for correct answer
+    if (userAnswer == correctAnswer) {
+        pointsAwarded = 10; // Award points for correct answer
     }
   
-    // Save the question data
-    const newQuestion = new Question({
-      level,
-      question,
-      correctAnswer,
-      userAnswer,
-      pointsAwarded,
-    });
-  
-    await newQuestion.save();
-  
-    console.log('Question saved to DB:', newQuestion); // Log the saved question
-  
-    // Update user's points based on the answer
-    const user = await User.findOne({ email });
-    user.points += pointsAwarded;
-    await user.save();
-  
-    console.log('User points updated:', user); // Log the updated user
-  
-    res.status(200).send('Question saved successfully');
-  });
+    try {
+        const newQuestion = new Question({
+            level, 
+            question, 
+            correctAnswer, 
+            userAnswer, 
+            pointsAwarded,
+            createdAt: new Date()
+        });
+        
+        await newQuestion.save();
+        
+        const user = await User.findOne({ email });
+        if (!user) {
+            return res.status(404).send('User not found');
+        }
+        
+        user.points += pointsAwarded;
+        await user.save();
+        
+        res.status(200).json({
+            message: 'Question saved successfully',
+            questionDetails: newQuestion,
+            updatedUserPoints: user.points
+        });
+    } catch (error) {
+        console.error('Error saving question:', error);
+        res.status(500).send('Error saving question');
+    }
+});
+
+
   
 
   app.get('/leaderboard', async (req, res) => {
@@ -128,6 +149,79 @@ app.post('/saveQuestion', async (req, res) => {
         res.status(500).send('Error fetching leaderboard');
     }
 });
+
+// Fetch all users from the database
+app.get('/users', async (req, res) => {
+    try {
+        const users = await User.find(); // Fetch all users
+        res.json(users); // Return users in JSON format
+    } catch (error) {
+        console.error("Error fetching users:", error);
+        res.status(500).send("Error fetching users");
+    }
+});
+
+
+// Assign Question Endpoint
+app.post('/assignQuestion', async (req, res) => {
+    const { email, question, correctAnswer } = req.body;
+
+    try {
+        // Find the user by email
+        const user = await User.findOne({ email });
+        if (!user) {
+            return res.status(404).send('User not found');
+        }
+
+        // Create the new question
+        const newQuestion = new Question({
+            question,
+            correctAnswer,
+            level: 1, // Default level or could be passed from the client
+            pointsAwarded: 10, // Example points
+            userAnswer: "", // Initially empty answer
+        });
+
+        await newQuestion.save();
+
+        // Associate question with the user (optional, depends on your requirements)
+        user.questions.push(newQuestion._id); // Add the question to user's list (if you want)
+        await user.save();
+
+        res.status(200).send('Question assigned successfully');
+    } catch (error) {
+        console.error('Error assigning question:', error);
+        res.status(500).send('Error assigning question');
+    }
+});
+
+// Endpoint to save an assignment
+app.post('/assignments', async (req, res) => {
+    const { email, question, correctAnswer } = req.body;
+
+    try {
+        // Create a new assignment entry
+        const newAssignment = new Assignment({
+            email,
+            question,
+            correctAnswer,
+        });
+
+        // Save the assignment to the database
+        await newAssignment.save();
+
+        // Send a success response
+        res.status(200).json({
+            message: 'Assignment saved successfully',
+            assignment: newAssignment,
+        });
+    } catch (error) {
+        console.error("Error saving assignment:", error);
+        res.status(500).send('Error saving assignment');
+    }
+});
+
+
 
 
 // Start Server

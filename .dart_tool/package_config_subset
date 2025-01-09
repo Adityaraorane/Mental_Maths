@@ -111,9 +111,9 @@ image_picker_windows
 file:///C:/Users/adity/AppData/Local/Pub/Cache/hosted/pub.dev/image_picker_windows-0.2.1+1/
 file:///C:/Users/adity/AppData/Local/Pub/Cache/hosted/pub.dev/image_picker_windows-0.2.1+1/lib/
 intl
-3.3
-file:///C:/Users/adity/AppData/Local/Pub/Cache/hosted/pub.dev/intl-0.20.1/
-file:///C:/Users/adity/AppData/Local/Pub/Cache/hosted/pub.dev/intl-0.20.1/lib/
+3.0
+file:///C:/Users/adity/AppData/Local/Pub/Cache/hosted/pub.dev/intl-0.19.0/
+file:///C:/Users/adity/AppData/Local/Pub/Cache/hosted/pub.dev/intl-0.19.0/lib/
 leak_tracker
 3.2
 file:///C:/Users/adity/AppData/Local/Pub/Cache/hosted/pub.dev/leak_tracker-10.0.5/
@@ -302,6 +302,10 @@ flutter
 3.3
 file:///C:/Users/adity/Flutter/flutter/packages/flutter/
 file:///C:/Users/adity/Flutter/flutter/packages/flutter/lib/
+flutter_localizations
+3.2
+file:///C:/Users/adity/Flutter/flutter/packages/flutter_localizations/
+file:///C:/Users/adity/Flutter/flutter/packages/flutter_localizations/lib/
 flutter_test
 3.3
 file:///C:/Users/adity/Flutter/flutter/packages/flutter_test/

@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:vmaths/services/api.dart';
+import 'package:vmaths/screens/dashboard.dart';  // Import Dashboard page
 
 class LoginScreen extends StatefulWidget {
   const LoginScreen({super.key});
@@ -15,29 +16,37 @@ class LoginScreenState extends State<LoginScreen> {
   final ApiService _apiService = ApiService();
   bool _isPasswordVisible = false;
 
-Future<void> _login() async {
-  String email = _emailController.text.trim();
-  String password = _passwordController.text;
+  Future<void> _login() async {
+    String email = _emailController.text.trim();
+    String password = _passwordController.text;
 
-  try {
-    bool success = (await _apiService.login(email, password)) as bool;
-    if (success) {
-      SharedPreferences prefs = await SharedPreferences.getInstance();
-      await prefs.setString('userEmail', email);  // Store email
+    // Admin credentials check
+    if (email == 'admin@gmail.com' && password == 'admin') {
+      Navigator.pushReplacement(
+        context,
+        MaterialPageRoute(builder: (context) => Dashboard()), // Navigate to Dashboard
+      );
+      return;
+    }
 
-      Navigator.pushReplacementNamed(context, '/home');
-    } else {
+    try {
+      bool success = (await _apiService.login(email, password)) as bool;
+      if (success) {
+        SharedPreferences prefs = await SharedPreferences.getInstance();
+        await prefs.setString('userEmail', email);  // Store email
+
+        Navigator.pushReplacementNamed(context, '/home');
+      } else {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Invalid email or password')),
+        );
+      }
+    } catch (e) {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Invalid email or password')),
+        SnackBar(content: Text('Error: $e')),
       );
     }
-  } catch (e) {
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(content: Text('Error: $e')),
-    );
   }
-}
-
 
   @override
   Widget build(BuildContext context) {
