@@ -46,10 +46,13 @@ const AssignmentSchema = new mongoose.Schema({
     email: { type: String, required: true },
     question: { type: String, required: true },
     correctAnswer: { type: String, required: true },
-    createdAt: { type: Date, default: Date.now } // Automatically capture the date and time
+    userAnswer: { type: String, required: false }, // Allow userAnswer to be optional initially
+    submittedAt: { type: Date, default: null },     // Tracks when the answer was submitted
+    createdAt: { type: Date, default: Date.now }    // Automatically capture the date and time
 });
 
 const Assignment = mongoose.model('Assignment', AssignmentSchema);
+
 
 
 // Signup Endpoint
@@ -196,6 +199,24 @@ app.post('/assignQuestion', async (req, res) => {
 });
 
 // Endpoint to save an assignment
+
+
+app.get('/assignments', async (req, res) => {
+    const { email } = req.query;
+    try {
+      const assignments = await Assignment.find({ email });
+      if (!assignments || assignments.length === 0) {
+        return res.status(404).send('No assignments found');
+      }
+      res.json(assignments);
+    } catch (error) {
+      console.error('Error fetching assignments:', error);
+      res.status(500).send('Error fetching assignments');
+    }
+  });
+  
+
+// Endpoint to save an assignment
 app.post('/assignments', async (req, res) => {
     const { email, question, correctAnswer } = req.body;
 
@@ -205,6 +226,7 @@ app.post('/assignments', async (req, res) => {
             email,
             question,
             correctAnswer,
+            createdAt: new Date(), // Store the assignment creation time
         });
 
         // Save the assignment to the database
@@ -221,7 +243,35 @@ app.post('/assignments', async (req, res) => {
     }
 });
 
+// Endpoint to update an assignment with user's answer (updated endpoint name)
+app.post('/updateAssignmentAnswer', async (req, res) => {
+    const { email, question, userAnswer } = req.body;
 
+    try {
+        // Find the assignment by email and question
+        const assignment = await Assignment.findOne({ email, question });
+
+        if (!assignment) {
+            return res.status(404).send('Assignment not found');
+        }
+
+        // Update the assignment with the user's answer and submission date
+        assignment.userAnswer = userAnswer; // Save the user's answer
+        assignment.submittedAt = new Date(); // Save the submission date
+
+        // Save the updated assignment
+        await assignment.save();
+
+        // Send the response
+        res.status(200).json({
+            message: 'Answer submitted successfully',
+            updatedAssignment: assignment,
+        });
+    } catch (error) {
+        console.error("Error submitting answer:", error);
+        res.status(500).send('Error submitting answer');
+    }
+});
 
 
 // Start Server

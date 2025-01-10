@@ -65,5 +65,48 @@ class ApiService {
   }
 }
 
+// Fetch assignments by email
+Future<List<Map<String, dynamic>>> getAssignmentsByEmail(String email) async {
+  try {
+    final response = await http.get(
+      Uri.parse('$baseUrl/assignments?email=$email'),
+      headers: {'Content-Type': 'application/json'},
+    );
+
+    if (response.statusCode == 200) {
+      List<Map<String, dynamic>> assignments = List<Map<String, dynamic>>.from(json.decode(response.body));
+      return assignments;
+    } else {
+      throw Exception('Failed to load assignments');
+    }
+  } catch (e) {
+    print('Error fetching assignments: $e');
+    throw Exception('Failed to load assignments');
+  }
+}
+
+
+  // Save the user's answer
+  Future<void> saveUserAnswer(String email, String question, String answer, String timestamp) async {
+    try {
+      final response = await http.post(
+        Uri.parse('$baseUrl/submit_answer'),
+        headers: {'Content-Type': 'application/json'},
+        body: json.encode({
+          'email': email,
+          'question': question,
+          'answer': answer,
+          'timestamp': timestamp,
+        }),
+      );
+      if (response.statusCode != 200) {
+        throw Exception('Failed to save answer');
+      }
+    } catch (e) {
+      throw Exception('Error saving answer: $e');
+    }
+  }
+
+  
 
 }

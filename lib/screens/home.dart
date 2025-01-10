@@ -5,6 +5,7 @@ import 'lessons.dart';
 import 'about.dart';
 import 'Leaderboard.dart';
 import 'rapid_fire.dart';
+import 'my_assignments.dart';  // Import the MyAssignments screen
 
 class HomeScreen extends StatelessWidget {
   const HomeScreen({super.key});
@@ -49,6 +50,7 @@ class HomeScreen extends StatelessWidget {
             _buildCard('Your Progress', 'Completed 3 out of 10 lessons', Icons.bar_chart),
             _buildCard('Leaderboard Rank', 'You are currently ranked #8!', Icons.leaderboard),
             _buildCard('Quick Challenge', 'Test your skills with a rapid fire round!', Icons.flash_on),
+            _buildCard('My Assignments', 'Check your current and past assignments.', Icons.assignment),  // New Card
           ],
         ),
       ),
@@ -75,6 +77,9 @@ class HomeScreen extends StatelessWidget {
           }),
           _buildDrawerItem(Icons.lightbulb, 'Rapid Fire', () {
             Navigator.push(context, MaterialPageRoute(builder: (context) => RapidFireScreen()));
+          }),
+          _buildDrawerItem(Icons.assignment, 'My Assignments', () {
+            Navigator.push(context, MaterialPageRoute(builder: (context) => MyAssignmentsScreen()));  // New Item in Drawer
           }),
           _buildDrawerItem(Icons.info, 'About Us', () {
             Navigator.push(context, MaterialPageRoute(builder: (context) => const AboutScreen()));
