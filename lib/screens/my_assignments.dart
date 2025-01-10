@@ -10,13 +10,20 @@ class MyAssignmentsScreen extends StatefulWidget {
 class _MyAssignmentsScreenState extends State<MyAssignmentsScreen> {
   final ApiService _apiService = ApiService();
   String? userEmail;
-  List<Map<String, dynamic>> assignments = [];
-  final TextEditingController _answerController = TextEditingController();
+  List<dynamic> assignments = []; // Define assignments list
+  Map<String, TextEditingController> answerControllers = {};
 
   @override
   void initState() {
     super.initState();
     _loadUserEmail();
+  }
+
+  @override
+  void dispose() {
+    // Clean up controllers
+    answerControllers.values.forEach((controller) => controller.dispose());
+    super.dispose();
   }
 
   Future<void> _loadUserEmail() async {
@@ -29,30 +36,72 @@ class _MyAssignmentsScreenState extends State<MyAssignmentsScreen> {
     }
   }
 
+  // Add the missing _fetchAssignments method
   Future<void> _fetchAssignments() async {
     try {
+      if (userEmail == null) return;
+      
       final fetchedAssignments = await _apiService.getAssignmentsByEmail(userEmail!);
       setState(() {
         assignments = fetchedAssignments;
+        // Create controllers for each assignment
+        assignments.forEach((assignment) {
+          if (!answerControllers.containsKey(assignment['question'])) {
+            answerControllers[assignment['question']] = TextEditingController();
+          }
+        });
       });
     } catch (e) {
       print('Error fetching assignments: $e');
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Failed to load assignments. Please try again.'))
+      );
     }
   }
 
   Future<void> _submitAnswer(String question, String correctAnswer) async {
-    String userAnswer = _answerController.text.trim();
-    bool isCorrect = userAnswer == correctAnswer;
-    String message = isCorrect ? 'Correct Answer!' : 'Wrong Answer, Try Again!';
+    try {
+      final controller = answerControllers[question];
+      if (controller == null) return;
+      
+      String userAnswer = controller.text.trim();
+      if (userAnswer.isEmpty) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Please enter an answer'))
+        );
+        return;
+      }
 
-    if (isCorrect) {
-      await _apiService.saveUserAnswer(userEmail!, question, userAnswer, DateTime.now().toString());
-      _fetchAssignments();
+      bool success = await _apiService.saveUserAnswer(
+        userEmail!,
+        question,
+        userAnswer,
+        DateTime.now().toString()
+      );
+
+      if (success) {
+        bool isCorrect = userAnswer == correctAnswer;
+        String message = isCorrect ? 'Correct Answer!' : 'Wrong Answer, Try Again!';
+        
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text(message))
+        );
+
+        if (isCorrect) {
+          controller.clear();
+          await _fetchAssignments(); // Refresh the assignments list
+        }
+      } else {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Failed to submit answer. Please try again.'))
+        );
+      }
+    } catch (e) {
+      print('Error submitting answer: $e');
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('An error occurred. Please try again.'))
+      );
     }
-
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(content: Text(message))
-    );
   }
 
   @override
@@ -61,36 +110,55 @@ class _MyAssignmentsScreenState extends State<MyAssignmentsScreen> {
       appBar: AppBar(
         title: Text('My Assignments'),
       ),
-      body: ListView.builder(
-        itemCount: assignments.length,
-        itemBuilder: (context, index) {
-          final assignment = assignments[index];
-          return Card(
-            margin: EdgeInsets.all(10),
-            child: ListTile(
-              title: Text('Question: ${assignment['question']}'),
-              subtitle: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  TextField(
-                    controller: _answerController,
-                    decoration: InputDecoration(
-                      hintText: 'Enter your answer here',
+      body: assignments.isEmpty
+          ? Center(child: Text('No assignments available'))
+          : ListView.builder(
+              itemCount: assignments.length,
+              itemBuilder: (context, index) {
+                final assignment = assignments[index];
+                final controller = answerControllers[assignment['question']] ?? TextEditingController();
+                
+                return Card(
+                  margin: EdgeInsets.all(10),
+                  child: Padding(
+                    padding: EdgeInsets.all(16),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          'Question: ${assignment['question']}',
+                          style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+                        ),
+                        SizedBox(height: 10),
+                        TextField(
+                          controller: controller,
+                          decoration: InputDecoration(
+                            hintText: 'Enter your answer here',
+                            border: OutlineInputBorder(),
+                          ),
+                        ),
+                        SizedBox(height: 10),
+                        ElevatedButton(
+                          onPressed: () => _submitAnswer(
+                            assignment['question'],
+                            assignment['correctAnswer'],
+                          ),
+                          child: Text('Submit Answer'),
+                        ),
+                        if (assignment['userAnswer'] != null)
+                          Padding(
+                            padding: EdgeInsets.only(top: 8),
+                            child: Text(
+                              'Previous Answer: ${assignment['userAnswer']}',
+                              style: TextStyle(fontStyle: FontStyle.italic),
+                            ),
+                          ),
+                      ],
                     ),
                   ),
-                  ElevatedButton(
-                    onPressed: () => _submitAnswer(
-                      assignment['question'],
-                      assignment['correctAnswer']
-                    ),
-                    child: Text('Submit Answer'),
-                  )
-                ],
-              ),
+                );
+              },
             ),
-          );
-        },
-      ),
     );
   }
 }
