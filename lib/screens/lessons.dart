@@ -7,35 +7,75 @@ class LessonScreen extends StatelessWidget {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Module 1: Introduction to Vedic Maths'),
-        backgroundColor: Colors.teal,
+        title: const Text('Vedic Maths Lessons'),
+        backgroundColor: Colors.blueAccent,
+      ),
+      body: ListView.builder(
+        padding: const EdgeInsets.all(20.0),
+        itemCount: 10,
+        itemBuilder: (context, index) {
+          return Card(
+            color: Colors.lightBlue[100],
+            child: ListTile(
+              title: Text('Lesson ${index + 1}',
+                  style: const TextStyle(fontSize: 20, fontWeight: FontWeight.bold)),
+              trailing: const Icon(Icons.arrow_forward_ios),
+              onTap: () {
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                    builder: (context) => LessonScreenDetail(lessonNumber: index + 1),
+                  ),
+                );
+              },
+            ),
+          );
+        },
+      ),
+    );
+  }
+}
+
+class LessonScreenDetail extends StatelessWidget {
+  final int lessonNumber;
+
+  const LessonScreenDetail({super.key, required this.lessonNumber});
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      appBar: AppBar(
+        title: Text('Lesson $lessonNumber'),
+        backgroundColor: Colors.blueAccent,
+        leading: IconButton(
+          icon: const Icon(Icons.arrow_back),
+          onPressed: () => Navigator.pop(context),
+        ),
       ),
       body: Padding(
         padding: const EdgeInsets.all(20.0),
         child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            const Text(
-              'Introduction to Vedic Mathematics:',
-              style: TextStyle(
-                fontSize: 24,
-                fontWeight: FontWeight.bold,
-                color: Colors.teal,
-              ),
+            Text(
+              'Lesson $lessonNumber Content',
+              style: const TextStyle(fontSize: 24, fontWeight: FontWeight.bold, color: Colors.blueAccent),
             ),
             const SizedBox(height: 20),
             const Text(
-              'Vedic Mathematics is an ancient system of mathematics that provides various techniques to solve mathematical problems more efficiently. The techniques are based on simple and effective mental calculation methods, making it easier for students to perform complex arithmetic operations mentally. The methods of Vedic Maths help in improving speed, accuracy, and memory, and are extremely helpful in competitive exams.',
+              'This is a placeholder for the lesson content. You can add theory and examples here later.',
               style: TextStyle(fontSize: 18),
             ),
-            const SizedBox(height: 20),
-            const Text(
-              'In this module, you will learn the basics of Vedic Maths, including addition, subtraction, multiplication, and division. The aim is to improve mental calculation skills and develop a better understanding of numbers.',
-              style: TextStyle(fontSize: 18),
-            ),
-            // Add any lesson-specific content here
           ],
         ),
       ),
     );
   }
+}
+
+void main() {
+  runApp(const MaterialApp(
+    home: LessonScreen(),
+    debugShowCheckedModeBanner: false,
+  ));
 }

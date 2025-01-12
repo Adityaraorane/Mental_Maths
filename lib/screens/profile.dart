@@ -22,7 +22,6 @@ class _ProfileScreenState extends State<ProfileScreen> {
     loadEmail();
   }
 
-  // Load email from SharedPreferences
   Future<void> loadEmail() async {
     SharedPreferences prefs = await SharedPreferences.getInstance();
     setState(() {
@@ -30,7 +29,6 @@ class _ProfileScreenState extends State<ProfileScreen> {
     });
   }
 
-  // Function to fetch user profile from the backend
   Future<Map<String, dynamic>> fetchUserProfile() async {
     final response = await http.get(
       Uri.parse('http://localhost:5000/profile?email=$email'),
@@ -43,7 +41,6 @@ class _ProfileScreenState extends State<ProfileScreen> {
     }
   }
 
-  // Pick image from gallery or camera
   Future<void> _pickImage() async {
     final picker = ImagePicker();
     final pickedFile = await picker.pickImage(source: ImageSource.gallery);
@@ -55,7 +52,6 @@ class _ProfileScreenState extends State<ProfileScreen> {
     }
   }
 
-  // Upload the image to the backend
   Future<void> _uploadProfileImage() async {
     if (_imageFile != null) {
       String base64Image = base64Encode(_imageFile!.readAsBytesSync());
@@ -66,7 +62,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
           body: json.encode({
             'email': email,
             'profileImage': base64Image,
-            'points': 100, // Initialize score to 100
+            'points': 100,
           }),
         );
         if (response.statusCode == 200) {
@@ -94,9 +90,19 @@ class _ProfileScreenState extends State<ProfileScreen> {
     }
 
     return Scaffold(
+      backgroundColor: Colors.blue.shade50,
       appBar: AppBar(
         title: const Text('Profile'),
-        backgroundColor: Colors.teal,
+        backgroundColor: Colors.blue.shade800,
+        flexibleSpace: Container(
+          decoration: BoxDecoration(
+            gradient: LinearGradient(
+              colors: [Colors.blue.shade700, Colors.blue.shade400],
+              begin: Alignment.topLeft,
+              end: Alignment.bottomRight,
+            ),
+          ),
+        ),
       ),
       body: FutureBuilder<Map<String, dynamic>>(
         future: fetchUserProfile(),
@@ -115,45 +121,122 @@ class _ProfileScreenState extends State<ProfileScreen> {
 
           return Padding(
             padding: const EdgeInsets.all(20.0),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                // Profile photo circle
-                Center(
-                  child: Stack(
-                    children: [
-                      CircleAvatar(
-                        radius: 70,
-                        backgroundImage: _imageFile != null
-                            ? FileImage(_imageFile!)
-                            : (user?['profileImage'] != null
-                                ? MemoryImage(
-                                    base64Decode(user?['profileImage']))
-                                : AssetImage('assets/default_avatar.png')
-                                    as ImageProvider),
-                      ),
-                      Positioned(
-                        bottom: 0,
-                        right: 0,
-                        child: IconButton(
-                          icon: const Icon(
-                            Icons.camera_alt,
-                            color: Colors.white,
-                          ),
-                          onPressed: _pickImage,
+            child: SingleChildScrollView(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.center,
+                children: [
+                  // Profile photo with a border and shadow
+                  Center(
+                    child: Stack(
+                      children: [
+                        CircleAvatar(
+                          radius: 90,
+                          backgroundImage: _imageFile != null
+                              ? FileImage(_imageFile!)
+                              : (user?['profileImage'] != null
+                                  ? MemoryImage(base64Decode(user?['profileImage']))
+                                  : AssetImage('assets/default_avatar.png')
+                                      as ImageProvider),
+                          backgroundColor: Colors.blue.shade100,
                         ),
-                      ),
-                    ],
+                        Positioned(
+                          bottom: 0,
+                          right: 0,
+                          child: AnimatedContainer(
+                            duration: Duration(milliseconds: 300),
+                            decoration: BoxDecoration(
+                              shape: BoxShape.circle,
+                              boxShadow: [
+                                BoxShadow(
+                                  color: Colors.black.withOpacity(0.2),
+                                  spreadRadius: 2,
+                                  blurRadius: 5,
+                                ),
+                              ],
+                            ),
+                            child: FloatingActionButton(
+                              backgroundColor: Colors.blue.shade600,
+                              onPressed: _pickImage,
+                              child: const Icon(
+                                Icons.camera_alt,
+                                color: Colors.white,
+                              ),
+                            ),
+                          ),
+                        ),
+                      ],
+                    ),
                   ),
-                ),
-                const SizedBox(height: 20),
-                Text('Name: ${user?['firstName']} ${user?['lastName']}'),
-                Text('Email: ${user?['email']}'),
-                Text('Mobile: ${user?['mobile']}'),
-                Text('Date of Birth: ${user?['dob']}'),
-                const SizedBox(height: 20),
-                Text('Points: ${user?['points'] ?? 100}'),
-              ],
+                  const SizedBox(height: 30),
+                  Card(
+                    elevation: 5,
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(15),
+                    ),
+                    child: Padding(
+                      padding: const EdgeInsets.all(20.0),
+                      child: Column(
+                        children: [
+                          Text(
+                            'Name: ${user?['firstName']} ${user?['lastName']}',
+                            style: TextStyle(
+                              fontSize: 22,
+                              fontWeight: FontWeight.bold,
+                              color: Colors.blue.shade800,
+                            ),
+                          ),
+                          const SizedBox(height: 10),
+                          Text(
+                            'Email: ${user?['email']}',
+                            style: TextStyle(
+                              fontSize: 18,
+                              color: Colors.blue.shade600,
+                            ),
+                          ),
+                          const SizedBox(height: 10),
+                          Text(
+                            'Mobile: ${user?['mobile']}',
+                            style: TextStyle(
+                              fontSize: 18,
+                              color: Colors.blue.shade600,
+                            ),
+                          ),
+                          const SizedBox(height: 10),
+                          Text(
+                            'Date of Birth: ${user?['dob']}',
+                            style: TextStyle(
+                              fontSize: 18,
+                              color: Colors.blue.shade600,
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ),
+                  const SizedBox(height: 20),
+                  Card(
+                    elevation: 5,
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(15),
+                    ),
+                    child: Padding(
+                      padding: const EdgeInsets.all(20.0),
+                      child: Column(
+                        children: [
+                          Text(
+                            'Points: ${user?['points'] ?? 100}',
+                            style: TextStyle(
+                              fontSize: 22,
+                              fontWeight: FontWeight.bold,
+                              color: Colors.blue.shade800,
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ),
+                ],
+              ),
             ),
           );
         },

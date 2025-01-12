@@ -1,0 +1,10 @@
+^C:\USERS\ADITY\DESKTOP\DEC_24\VMATHS\BUILD\WINDOWS\X64\CMAKEFILES\790D8AE9C9FE031A311E94F4AE32F8C9\GENERATE.STAMP.RULE
+setlocal
+"C:\Program Files\Microsoft Visual Studio\2022\Community\Common7\IDE\CommonExtensions\Microsoft\CMake\CMake\bin\cmake.exe" -SC:/Users/adity/Desktop/Dec_24/vmaths/windows -BC:/Users/adity/Desktop/Dec_24/vmaths/build/windows/x64 --check-stamp-list CMakeFiles/generate.stamp.list --vs-solution-file C:/Users/adity/Desktop/Dec_24/vmaths/build/windows/x64/vmaths.sln
+if %errorlevel% neq 0 goto :cmEnd
+:cmEnd
+endlocal & call :cmErrorLevel %errorlevel% & goto :cmDone
+:cmErrorLevel
+exit /b %1
+:cmDone
+if %errorlevel% neq 0 goto :VCEnd

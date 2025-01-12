@@ -1,3 +1,4 @@
+require('dotenv').config();  // Load environment variables from .env file
 const express = require('express');
 const mongoose = require('mongoose');
 const cors = require('cors');
@@ -7,162 +8,274 @@ const app = express();
 app.use(cors());
 app.use(bodyParser.json());
 
-// MongoDB connection
-mongoose.connect('mongodb+srv://devgaonkar:devgaonkar@mentalmaths.7zqt9.mongodb.net/', { useNewUrlParser: true, useUnifiedTopology: true })
-  .then(() => console.log('MongoDB connected'))
-  .catch(err => console.log(err));
+// Fetch MongoDB URI from .env
+const mongoURI = process.env.MONGO_URI;
 
-  const UserSchema = new mongoose.Schema({
+// MongoDB connection using .env
+mongoose.connect(mongoURI, {
+    useNewUrlParser: true,
+    useUnifiedTopology: true
+}).then(() => console.log('MongoDB connected'))
+  .catch(err => console.log('Error connecting to MongoDB:', err));
+
+const UserSchema = new mongoose.Schema({
     firstName: { type: String, required: true },
     lastName: { type: String, required: true },
     dob: { type: String, required: true },
     mobile: { type: String, required: true },
     email: { type: String, required: true, unique: true },
     password: { type: String, required: true },
-    profileImage: { type: String }, // Store the base64-encoded image
-    points: { type: Number, default: 100 }, // Default points set to 100
-  });
-  
+    profileImage: { type: String },
+    points: { type: Number, default: 100 }
+});
 
-  const User = mongoose.model('User', UserSchema);
+const User = mongoose.model('User', UserSchema);
 
-  const QuestionSchema = new mongoose.Schema({
+const QuestionSchema = new mongoose.Schema({
+    level: { type: Number, required: true },               // Level added here
     question: { type: String, required: true },
     correctAnswer: { type: String, required: true },
-    createdAt: { type: Date, default: Date.now },
-  });
-  
-  const Question = mongoose.model('Question', QuestionSchema);
-  
+    userAnswer: { type: String, required: true },
+    pointsAwarded: { type: Number, default: 0 },            // Points added here
+    createdAt: { type: Date, default: Date.now }            // Automatically captured
+});
 
-  // Signup
-  app.post('/signup', async (req, res) => {
+const Question = mongoose.model('Question', QuestionSchema);
+
+const AssignmentSchema = new mongoose.Schema({
+    email: { type: String, required: true },
+    question: { type: String, required: true },
+    correctAnswer: { type: String, required: true },
+    userAnswer: { type: String, required: false }, // Allow userAnswer to be optional initially
+    submittedAt: { type: Date, default: null },     // Tracks when the answer was submitted
+    createdAt: { type: Date, default: Date.now }    // Automatically capture the date and time
+});
+
+const Assignment = mongoose.model('Assignment', AssignmentSchema);
+
+
+
+// Signup Endpoint
+app.post('/signup', async (req, res) => {
     const { firstName, lastName, dob, mobile, email, password } = req.body;
-  
-    const existingUser = await User.findOne({ email });
-    if (existingUser) return res.status(400).send('Email already registered.');
-  
-    const newUser = new User({ firstName, lastName, dob, mobile, email, password });
-    await newUser.save();
-  
-    res.status(201).send('User registered successfully');
-  });
-  
-  // Login
-  app.post('/login', async (req, res) => {
-    const { email, password } = req.body;
-  
-    const user = await User.findOne({ email });
-    if (!user || user.password !== password)
-      return res.status(400).send('Invalid email or password.');
-  
-    res.status(200).send('Login successful');
-  });
 
-  app.get('/profile', async (req, res) => {
-    const { email } = req.query;
-    const user = await User.findOne({ email });
-    if (user) {
-        res.json({
-            firstName: user.firstName,
-            lastName: user.lastName,
-            email: user.email,
-            mobile: user.mobile,
-            dob: user.dob,
-            profileImage: user.profileImage || null,
-            points: user.points || 100,
-        });
-    } else {
-        res.status(404).send('User not found');
+    try {
+        const existingUser = await User.findOne({ email });
+        if (existingUser) return res.status(400).send('Email already registered.');
+
+        const newUser = new User({ firstName, lastName, dob, mobile, email, password });
+        await newUser.save();
+        res.status(201).send('User registered successfully');
+    } catch (error) {
+        res.status(500).send('Error registering user');
     }
 });
 
-app.post('/updateProfile', async (req, res) => {
-  const { email, profileImage, points } = req.body;
-  await User.updateOne(
-      { email },
-      { $set: { profileImage, points } },
-      { upsert: true }
-  );
-  res.send('Profile updated successfully');
+// Login Endpoint
+app.post('/login', async (req, res) => {
+    const { email, password } = req.body;
+
+    try {
+        const user = await User.findOne({ email });
+        if (!user || user.password !== password)
+            return res.status(400).send('Invalid email or password.');
+
+        res.status(200).send('Login successful');
+    } catch (error) {
+        res.status(500).send('Error logging in');
+    }
 });
 
-// Save question and correct answer
+// Profile Endpoint
+app.get('/profile', async (req, res) => {
+    const { email } = req.query;
+    try {
+        const user = await User.findOne({ email });
+        if (user) {
+            res.json(user);
+        } else {
+            res.status(404).send('User not found');
+        }
+    } catch (error) {
+        res.status(500).send('Error fetching profile');
+    }
+});
+
+// Save question and answer route
 app.post('/saveQuestion', async (req, res) => {
-  const { question, correctAnswer } = req.body;
+    const { level, question, correctAnswer, userAnswer, email } = req.body;
   
-  // Validate that both question and correctAnswer are provided
-  if (!question || !correctAnswer) {
-    return res.status(400).send('Question and correct answer are required.');
-  }
-
-  try {
-    const newQuestion = new Question({ question, correctAnswer });
-    await newQuestion.save();
-    res.status(200).send('Question saved successfully');
-  } catch (error) {
-    console.error(error);
-    res.status(500).send('Error saving question');
-  }
-});
-
-app.get('/getQuestions', async (req, res) => {
-  try {
-    const questions = await Question.find();
-    res.status(200).json(questions);
-  } catch (error) {
-    console.error(error);
-    res.status(500).send('Error fetching questions');
-  }
-});
-
-
-// Update user score
-app.post('/updateScore', async (req, res) => {
-  const { scoreIncrement } = req.body;
-  const email = req.user.email; // Assuming user is authenticated
-  const user = await User.findOne({ email });
-
-  if (user) {
-    user.points += scoreIncrement;
-    await user.save();
-    res.status(200).send('Score updated');
-  } else {
-    res.status(404).send('User not found');
-  }
-});
-
-const LeaderboardSchema = new mongoose.Schema({
-  username: String,
-  score: Number,
-  date: { type: Date, default: Date.now },
-});
-
-const Leaderboard = mongoose.model('Leaderboard', LeaderboardSchema);
-
-app.post('/submitScore', async (req, res) => {
-  const { username, score } = req.body;
-  const newScore = new Leaderboard({ username, score });
-  await newScore.save();
-  res.status(200).send('Score submitted');
-});
-
-app.get('/leaderboard', async (req, res) => {
-  const topScores = await Leaderboard.find().sort({ score: -1 }).limit(10);
-  res.json(topScores);
-});
-
-let users = {};
-
-app.post('/updateUserScore', (req, res) => {
-  const { userId, score } = req.body;
-  if (!users[userId]) users[userId] = 0;
-  users[userId] += score;
-  console.log(`User ${userId} score updated to ${users[userId]}`);
-  res.status(200).send('Score updated');
+    let pointsAwarded = 0;
+    if (userAnswer == correctAnswer) {
+        pointsAwarded = 10; // Award points for correct answer
+    }
+  
+    try {
+        const newQuestion = new Question({
+            level, 
+            question, 
+            correctAnswer, 
+            userAnswer, 
+            pointsAwarded,
+            createdAt: new Date()
+        });
+        
+        await newQuestion.save();
+        
+        const user = await User.findOne({ email });
+        if (!user) {
+            return res.status(404).send('User not found');
+        }
+        
+        user.points += pointsAwarded;
+        await user.save();
+        
+        res.status(200).json({
+            message: 'Question saved successfully',
+            questionDetails: newQuestion,
+            updatedUserPoints: user.points
+        });
+    } catch (error) {
+        console.error('Error saving question:', error);
+        res.status(500).send('Error saving question');
+    }
 });
 
 
-app.listen(5000, () => {
-  console.log('Server running on port 5000');
+  
+
+  app.get('/leaderboard', async (req, res) => {
+    try {
+        const leaderboard = await User.find().sort({ points: -1 }).limit(10);
+        res.json(leaderboard);
+    } catch (error) {
+        res.status(500).send('Error fetching leaderboard');
+    }
+});
+
+// Fetch all users from the database
+app.get('/users', async (req, res) => {
+    try {
+        const users = await User.find(); // Fetch all users
+        res.json(users); // Return users in JSON format
+    } catch (error) {
+        console.error("Error fetching users:", error);
+        res.status(500).send("Error fetching users");
+    }
+});
+
+
+// Assign Question Endpoint
+app.post('/assignQuestion', async (req, res) => {
+    const { email, question, correctAnswer } = req.body;
+
+    try {
+        // Find the user by email
+        const user = await User.findOne({ email });
+        if (!user) {
+            return res.status(404).send('User not found');
+        }
+
+        // Create the new question
+        const newQuestion = new Question({
+            question,
+            correctAnswer,
+            level: 1, // Default level or could be passed from the client
+            pointsAwarded: 10, // Example points
+            userAnswer: "", // Initially empty answer
+        });
+
+        await newQuestion.save();
+
+        // Associate question with the user (optional, depends on your requirements)
+        user.questions.push(newQuestion._id); // Add the question to user's list (if you want)
+        await user.save();
+
+        res.status(200).send('Question assigned successfully');
+    } catch (error) {
+        console.error('Error assigning question:', error);
+        res.status(500).send('Error assigning question');
+    }
+});
+
+// Endpoint to save an assignment
+
+
+app.get('/assignments', async (req, res) => {
+    const { email } = req.query;
+    try {
+      const assignments = await Assignment.find({ email });
+      if (!assignments || assignments.length === 0) {
+        return res.status(404).send('No assignments found');
+      }
+      res.json(assignments);
+    } catch (error) {
+      console.error('Error fetching assignments:', error);
+      res.status(500).send('Error fetching assignments');
+    }
+  });
+  
+
+// Endpoint to save an assignment
+app.post('/assignments', async (req, res) => {
+    const { email, question, correctAnswer } = req.body;
+
+    try {
+        // Create a new assignment entry
+        const newAssignment = new Assignment({
+            email,
+            question,
+            correctAnswer,
+            createdAt: new Date(), // Store the assignment creation time
+        });
+
+        // Save the assignment to the database
+        await newAssignment.save();
+
+        // Send a success response
+        res.status(200).json({
+            message: 'Assignment saved successfully',
+            assignment: newAssignment,
+        });
+    } catch (error) {
+        console.error("Error saving assignment:", error);
+        res.status(500).send('Error saving assignment');
+    }
+});
+
+// Endpoint to update an assignment with user's answer (updated endpoint name)
+app.post('/updateAssignmentAnswer', async (req, res) => {
+    const { email, question, userAnswer } = req.body;
+
+    try {
+        // Find the assignment by email and question
+        const assignment = await Assignment.findOne({ email, question });
+
+        if (!assignment) {
+            return res.status(404).send('Assignment not found');
+        }
+
+        // Update the assignment with the user's answer and submission date
+        assignment.userAnswer = userAnswer; // Save the user's answer
+        assignment.submittedAt = new Date(); // Save the submission date
+
+        // Save the updated assignment
+        await assignment.save();
+
+        // Send the response
+        res.status(200).json({
+            message: 'Answer submitted successfully',
+            updatedAssignment: assignment,
+        });
+    } catch (error) {
+        console.error("Error submitting answer:", error);
+        res.status(500).send('Error submitting answer');
+    }
+});
+
+
+// Start Server
+const PORT = process.env.PORT || 4000;
+app.listen(PORT, () => {
+    console.log(`Server running on http://localhost:${PORT}`);
 });

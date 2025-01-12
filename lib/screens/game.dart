@@ -10,7 +10,7 @@ class GameScreen extends StatefulWidget {
   final int numOperations;
   final int timeInterval;
   final String difficulty;
-  final String userEmail; // Add user email for score tracking
+  final String userEmail;
 
   const GameScreen({
     Key? key,
@@ -53,7 +53,13 @@ class GameScreenState extends State<GameScreen> {
     });
 
     // Send question and correct answer to the server
-    await _apiService.saveQuestion(_expressionParts.join(" "), _correctAnswer);
+    await _apiService.saveQuestion(
+      widget.numOperations, 
+      _expressionParts.join(" "), 
+      _correctAnswer, 
+      0, // Initial user answer (0 at the start)
+      widget.userEmail,
+    );
 
     _startTimer();
   }
@@ -249,43 +255,43 @@ class GameScreenState extends State<GameScreen> {
   }
 
   void _showResultDialog(BuildContext context, String title, String content) {
-  showDialog(
-    context: context,
-    barrierDismissible: false,
-    builder: (ctx) => AlertDialog(
-      title: Text(
-        title, 
-        style: TextStyle(
-          color: title == 'Correct!' ? Colors.green : Colors.red
-        )
+    showDialog(
+      context: context,
+      barrierDismissible: false,
+      builder: (ctx) => AlertDialog(
+        title: Text(
+          title, 
+          style: TextStyle(
+            color: title == 'Correct!' ? Colors.green : Colors.red
+          )
+        ),
+        content: Text(content),
+        actions: [
+          TextButton(
+            onPressed: () {
+              // Close the dialog
+              Navigator.of(ctx).pop();
+              
+              // Navigate back to GenerateQuestionScreen and reset
+              Navigator.of(context).pushAndRemoveUntil(
+                MaterialPageRoute(
+                  builder: (context) => GenerateQuestionScreen(shouldReset: true),
+                ),
+                (route) => false,
+              );
+            },
+            child: const Text('Play Again'),
+          ),
+          TextButton(
+            onPressed: () {
+              _shareResult(content);
+            },
+            child: const Text('Share'),
+          ),
+        ],
       ),
-      content: Text(content),
-      actions: [
-        TextButton(
-          onPressed: () {
-            // Close the dialog
-            Navigator.of(ctx).pop();
-            
-            // Navigate back to GenerateQuestionScreen and reset
-            Navigator.of(context).pushAndRemoveUntil(
-              MaterialPageRoute(
-                builder: (context) => GenerateQuestionScreen(shouldReset: true),
-              ),
-              (route) => false,
-            );
-          },
-          child: const Text('Play Again'),
-        ),
-        TextButton(
-          onPressed: () {
-            _shareResult(content);
-          },
-          child: const Text('Share'),
-        ),
-      ],
-    ),
-  );
-}
+    );
+  }
 
   void _shareResult(String content) {
     Share.share(

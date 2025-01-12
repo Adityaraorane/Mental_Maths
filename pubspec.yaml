@@ -31,3 +31,4 @@ flutter:
   uses-material-design: true
   assets:
     - lib/assets/google_logo.png
+    - lib/assets/math_logo.png

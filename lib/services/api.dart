@@ -2,8 +2,9 @@ import 'dart:convert';
 import 'package:http/http.dart' as http;
 
 class ApiService {
-  final String baseUrl = 'http://localhost:5000';
+  final String baseUrl = 'http://192.168.1.104:5000'; // Ensure this URL is correct for your backend
 
+  // Existing methods
   Future<bool> signup(String firstName, String lastName, String dob, String mobile, String email, String password) async {
     try {
       final response = await http.post(
@@ -44,52 +45,112 @@ class ApiService {
     }
   }
 
-  // Save the question and correct answer to the server
-  Future<bool> saveQuestion(String question, int correctAnswer) async {
+  Future<bool> saveQuestion(int level, String question, int correctAnswer, int userAnswer, String userEmail) async {
     try {
       final response = await http.post(
         Uri.parse('$baseUrl/saveQuestion'),
         headers: {'Content-Type': 'application/json'},
         body: json.encode({
+          'level': level,
           'question': question,
-          'correctAnswer': correctAnswer.toString(), // Convert to string for server compatibility
+          'correctAnswer': correctAnswer,
+          'userAnswer': userAnswer,
+          'email': userEmail, 
         }),
       );
 
       return response.statusCode == 200;
     } catch (e) {
-      print('Save question error: $e');
+      print('Error saving question: $e');
       return false;
     }
   }
 
-  // Update user score
-Future<bool> updateUserScore(String userEmail, int points) async {
-  try {
-    // Add timeout to prevent hanging
-    final response = await http.post(
-      Uri.parse('your_api_endpoint'),
-      body: {
-        'email': userEmail,
-        'points': points.toString()
-      },
-    ).timeout(
-      const Duration(seconds: 10), // const is used here because Duration is a compile-time constant
-      onTimeout: () {
-        print('Connection timed out');
-        return http.Response('Timeout', 408);
-      },
-    );
+  Future<bool> updateUserScore(String email, int score) async {
+    try {
+      final response = await http.post(
+        Uri.parse('$baseUrl/updateUserScore'),
+        headers: {'Content-Type': 'application/json'},
+        body: json.encode({
+          'email': email,
+          'score': score,
+        }),
+      );
 
-    if (response.statusCode == 200) {
-      return true;
-    } else {
-      print('Failed to update score. Status code: ${response.statusCode}');
+      return response.statusCode == 200;
+    } catch (e) {
+      print('Error updating score: $e');
       return false;
     }
-  } catch (e) {
-    print('Error updating score: $e');
-    return false;
   }
-}
+
+  Future<List<Map<String, dynamic>>> fetchQuestions() async {
+    try {
+      final response = await http.get(Uri.parse('$baseUrl/getQuestions'));
+
+      if (response.statusCode == 200) {
+        List<dynamic> data = json.decode(response.body);
+        return data.map((e) => Map<String, dynamic>.from(e)).toList();
+      } else {
+        return [];
+      }
+    } catch (e) {
+      print('Error fetching questions: $e');
+      return [];
+    }
+  }
+
+  Future<bool> deleteUserAccount(String email) async {
+    try {
+      final response = await http.delete(
+        Uri.parse('$baseUrl/deleteUser'),
+        headers: {'Content-Type': 'application/json'},
+        body: json.encode({'email': email}),
+      );
+
+      return response.statusCode == 200;
+    } catch (e) {
+      print('Error deleting account: $e');
+      return false;
+    }
+  }
+
+  // Define the missing methods
+
+  // Method to fetch assignments for a user by email
+  Future<List<Map<String, dynamic>>> getAssignmentsByEmail(String email) async {
+    try {
+      final response = await http.get(Uri.parse('$baseUrl/getAssignmentsByEmail/$email'));
+
+      if (response.statusCode == 200) {
+        List<dynamic> data = json.decode(response.body);
+        return data.map((e) => Map<String, dynamic>.from(e)).toList();
+      } else {
+        return [];
+      }
+    } catch (e) {
+      print('Error fetching assignments: $e');
+      return [];
+    }
+  }
+
+  // Method to save the user's answer to an assignment
+  Future<bool> saveUserAnswer(String email, String assignmentId, int userAnswer) async {
+    try {
+      final response = await http.post(
+        Uri.parse('$baseUrl/saveUserAnswer'),
+        headers: {'Content-Type': 'application/json'},
+        body: json.encode({
+          'email': email,
+          'assignmentId': assignmentId,
+          'userAnswer': userAnswer,
+        }),
+      );
+
+      return response.statusCode == 200;
+    } catch (e) {
+      print('Error saving user answer: $e');
+      return false;
+    }
+  }
 }

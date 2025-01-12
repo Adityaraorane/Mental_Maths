@@ -1,6 +1,6 @@
-import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
+import 'dart:convert';
 
 class LeaderboardScreen extends StatefulWidget {
   @override
@@ -8,24 +8,7 @@ class LeaderboardScreen extends StatefulWidget {
 }
 
 class _LeaderboardScreenState extends State<LeaderboardScreen> {
-  List<dynamic> leaderboard = [];
-
-  // Fetch leaderboard from API
-  Future<void> fetchLeaderboard() async {
-    final String url = 'http://localhost:5000/leaderboard'; // Your API URL
-    try {
-      final response = await http.get(Uri.parse(url));
-      if (response.statusCode == 200) {
-        setState(() {
-          leaderboard = json.decode(response.body);
-        });
-      } else {
-        print('Error fetching leaderboard. Status: ${response.statusCode}');
-      }
-    } catch (e) {
-      print('Error: $e');
-    }
-  }
+  List<dynamic> players = [];
 
   @override
   void initState() {
@@ -33,33 +16,58 @@ class _LeaderboardScreenState extends State<LeaderboardScreen> {
     fetchLeaderboard();
   }
 
+  Future<void> fetchLeaderboard() async {
+    try {
+      final response = await http.get(Uri.parse('http://192.168.1.104:5000/leaderboard'));
+      if (response.statusCode == 200) {
+        setState(() {
+          players = json.decode(response.body);
+        });
+      } else {
+        throw Exception('Failed to load leaderboard');
+      }
+    } catch (e) {
+      print('Error fetching leaderboard: $e');
+    }
+  }
+
+  Widget getMedal(int index) {
+    switch (index) {
+      case 0:
+        return Icon(Icons.emoji_events, color: Colors.yellow, size: 30);
+      case 1:
+        return Icon(Icons.emoji_events, color: Colors.grey, size: 30);
+      case 2:
+        return Icon(Icons.emoji_events, color: Colors.brown, size: 30);
+      default:
+        return SizedBox(width: 30);
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Leaderboard'),
-        centerTitle: true,
-        backgroundColor: Colors.blueAccent,
+        title: Text('Leaderboard'),
+        backgroundColor: Colors.blue,
       ),
-      body: leaderboard.isEmpty
-          ? const Center(child: CircularProgressIndicator())
+      body: players.isEmpty
+          ? Center(child: CircularProgressIndicator())
           : ListView.builder(
-              itemCount: leaderboard.length,
+              itemCount: players.length,
               itemBuilder: (context, index) {
-                final user = leaderboard[index];
-                return ListTile(
-                  leading: CircleAvatar(
-                    child: Text('${index + 1}'),
-                    backgroundColor: Colors.amberAccent,
-                  ),
-                  title: Text(
-                    user['username'] ?? 'Anonymous',
-                    style: const TextStyle(fontWeight: FontWeight.bold),
-                  ),
-                  subtitle: Text('Score: ${user['score'] ?? 0}'),
-                  trailing: Icon(
-                    Icons.star,
-                    color: index == 0 ? Colors.yellow : Colors.grey,
+                return Card(
+                  margin: EdgeInsets.symmetric(vertical: 10, horizontal: 20),
+                  child: ListTile(
+                    leading: getMedal(index),
+                    title: Text(
+                      '${players[index]['firstName']} ${players[index]['lastName']}',
+                      style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
+                    ),
+                    trailing: Text(
+                      '${players[index]['points']} Points',
+                      style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+                    ),
                   ),
                 );
               },
