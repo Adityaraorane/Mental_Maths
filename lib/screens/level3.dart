@@ -165,7 +165,8 @@ class _Level3State extends State<Level3> {
             children: [
               Text(
                 currentDisplay,
-                style: const TextStyle(fontSize: 80, fontWeight: FontWeight.bold),
+                style:
+                    const TextStyle(fontSize: 80, fontWeight: FontWeight.bold),
               ),
               if (showAnswerBox)
                 Column(

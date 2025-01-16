@@ -2,9 +2,9 @@ import 'dart:convert';
 import 'package:http/http.dart' as http;
 
 class ApiService {
-  final String baseUrl = 'http://192.168.1.104:5000'; // Ensure this URL is correct for your backend
+  final String baseUrl = 'http://10.0.2.2:3000'; // Ensure this URL is correct for your backend
 
-  // Existing methods
+  // Signup Method
   Future<bool> signup(String firstName, String lastName, String dob, String mobile, String email, String password) async {
     try {
       final response = await http.post(
@@ -27,6 +27,7 @@ class ApiService {
     }
   }
 
+  // Login Method
   Future<bool> login(String email, String password) async {
     try {
       final response = await http.post(
@@ -45,6 +46,7 @@ class ApiService {
     }
   }
 
+  // Save Question Method
   Future<bool> saveQuestion(int level, String question, int correctAnswer, int userAnswer, String userEmail) async {
     try {
       final response = await http.post(
@@ -66,6 +68,7 @@ class ApiService {
     }
   }
 
+  // Update User Score Method
   Future<bool> updateUserScore(String email, int score) async {
     try {
       final response = await http.post(
@@ -84,6 +87,7 @@ class ApiService {
     }
   }
 
+  // Fetch Questions Method
   Future<List<Map<String, dynamic>>> fetchQuestions() async {
     try {
       final response = await http.get(Uri.parse('$baseUrl/getQuestions'));
@@ -100,6 +104,7 @@ class ApiService {
     }
   }
 
+  // Delete User Account Method
   Future<bool> deleteUserAccount(String email) async {
     try {
       final response = await http.delete(
@@ -115,9 +120,7 @@ class ApiService {
     }
   }
 
-  // Define the missing methods
-
-  // Method to fetch assignments for a user by email
+  // Fetch Assignments for a User by Email Method
   Future<List<Map<String, dynamic>>> getAssignmentsByEmail(String email) async {
     try {
       final response = await http.get(Uri.parse('$baseUrl/getAssignmentsByEmail/$email'));
@@ -134,7 +137,7 @@ class ApiService {
     }
   }
 
-  // Method to save the user's answer to an assignment
+  // Save User Answer to an Assignment Method
   Future<bool> saveUserAnswer(String email, String assignmentId, int userAnswer) async {
     try {
       final response = await http.post(
@@ -151,6 +154,31 @@ class ApiService {
     } catch (e) {
       print('Error saving user answer: $e');
       return false;
+    }
+  }
+
+  // Simple login with the email received from Google OAuth
+  Future<bool> loginWithGoogle(String email, String firstName, String lastName) async {
+    try {
+      final response = await http.post(
+        Uri.parse('$baseUrl/google-login'),  // Adjust the URL to match your backend endpoint
+        headers: {'Content-Type': 'application/json'},
+        body: json.encode({
+          'email': email,
+          'firstName': firstName,
+          'lastName': lastName,
+          }), // Only send email for login
+      );
+
+      if (response.statusCode == 200) {
+        return true;  // Login was successful
+      } else {
+        print('Failed response: ${response.body}');
+        return false;  // Login failed (non-200 status code)
+      }
+    } catch (e) {
+      print('Google login error: $e');
+      return false;  // Return false in case of any error
     }
   }
 }

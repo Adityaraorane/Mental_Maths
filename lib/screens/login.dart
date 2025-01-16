@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:vmaths/services/api.dart';
 import 'package:google_sign_in/google_sign_in.dart';
-import 'package:vmaths/screens/dashboard.dart';  // Import Dashboard page
+import 'package:vmaths/screens/dashboard.dart';
 
 class LoginScreen extends StatefulWidget {
   const LoginScreen({super.key});
@@ -25,20 +25,19 @@ class LoginScreenState extends State<LoginScreen> {
     String email = _emailController.text.trim();
     String password = _passwordController.text;
 
-    // Admin credentials check
     if (email == 'admin@gmail.com' && password == 'admin') {
       Navigator.pushReplacement(
         context,
-        MaterialPageRoute(builder: (context) => Dashboard()), // Navigate to Dashboard
+        MaterialPageRoute(builder: (context) => Dashboard()),
       );
       return;
     }
 
     try {
-      bool success = (await _apiService.login(email, password)) as bool;
+      bool success = await _apiService.login(email, password);
       if (success) {
         SharedPreferences prefs = await SharedPreferences.getInstance();
-        await prefs.setString('userEmail', email);  // Store email
+        await prefs.setString('userEmail', email);
 
         Navigator.pushReplacementNamed(context, '/home');
       } else {
@@ -55,25 +54,37 @@ class LoginScreenState extends State<LoginScreen> {
 
   Future<void> _loginWithGoogle() async {
     try {
-      // Sign out the current user to allow account selection
       await _googleSignIn.signOut();
 
-      // Prompt the user to select a Google account
       final GoogleSignInAccount? googleUser = await _googleSignIn.signIn();
       if (googleUser != null) {
-        // Access the user's details
-        String? email = googleUser.email;
-        String? name = googleUser.displayName;
+        String email = googleUser.email;
+        String displayName = googleUser.displayName ?? '';
+        List<String> nameParts = displayName.split(' ');
+        String firstName = nameParts.isNotEmpty ? nameParts[0] : '';
+        String lastName = nameParts.length > 1 ? nameParts[1] : '';
 
-        // Store email in SharedPreferences
-        SharedPreferences prefs = await SharedPreferences.getInstance();
-        await prefs.setString('userEmail', email!);
+        bool success = await _apiService.loginWithGoogle(
+          email,
+          firstName,
+          lastName
+        );
 
-        // Print the user's details
-        print('User logged in with Google: Name: $name, Email: $email');
+        print(success);
+        print('Email: $email');
+        print('First Name: $firstName');
+        print('Last Name: $lastName');
 
-        // Navigate to the home screen
-        Navigator.pushReplacementNamed(context, '/home');
+
+        if (success) {
+          SharedPreferences prefs = await SharedPreferences.getInstance();
+          await prefs.setString('userEmail', email);
+          Navigator.pushReplacementNamed(context, '/home');
+        } else {
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(content: Text('Error logging in with Google')),
+          );
+        }
       }
     } catch (error) {
       ScaffoldMessenger.of(context).showSnackBar(
@@ -109,7 +120,6 @@ class LoginScreenState extends State<LoginScreen> {
               child: Column(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
-                  // App Logo Section
                   Container(
                     padding: const EdgeInsets.all(16),
                     decoration: BoxDecoration(
@@ -126,7 +136,7 @@ class LoginScreenState extends State<LoginScreen> {
                     child: Column(
                       children: [
                         Image.asset(
-                          'lib/assets/math_logo.png', // Add your logo
+                          'lib/assets/math_logo.png',
                           height: 120,
                           width: 120,
                         ),
@@ -143,7 +153,6 @@ class LoginScreenState extends State<LoginScreen> {
                     ),
                   ),
                   const SizedBox(height: 32),
-                  // Login Form Section
                   Container(
                     padding: const EdgeInsets.all(24),
                     decoration: BoxDecoration(
@@ -159,7 +168,6 @@ class LoginScreenState extends State<LoginScreen> {
                     ),
                     child: Column(
                       children: [
-                        // Email Field
                         TextField(
                           controller: _emailController,
                           decoration: InputDecoration(
@@ -177,7 +185,6 @@ class LoginScreenState extends State<LoginScreen> {
                           ),
                         ),
                         const SizedBox(height: 16),
-                        // Password Field
                         TextField(
                           controller: _passwordController,
                           obscureText: !_isPasswordVisible,
@@ -209,7 +216,6 @@ class LoginScreenState extends State<LoginScreen> {
                           ),
                         ),
                         const SizedBox(height: 24),
-                        // Login Button
                         ElevatedButton(
                           onPressed: _login,
                           style: ElevatedButton.styleFrom(
@@ -231,11 +237,10 @@ class LoginScreenState extends State<LoginScreen> {
                           ),
                         ),
                         const SizedBox(height: 16),
-                        // Google Sign-In Button
                         ElevatedButton.icon(
                           onPressed: _loginWithGoogle,
                           icon: Image.asset(
-                            'lib/assets/google_logo.png', // Correct the image path here
+                            'lib/assets/google_logo.png',
                             height: 24,
                             width: 24,
                           ),
@@ -255,26 +260,16 @@ class LoginScreenState extends State<LoginScreen> {
                     ),
                   ),
                   const SizedBox(height: 24),
-                  // Sign Up Link
                   GestureDetector(
-                    onTap: () => Navigator.pushNamed(context, '/signup'),
-                    child: RichText(
-                      text: TextSpan(
-                        text: "New Mathematician? ",
-                        style: TextStyle(
-                          color: Colors.deepPurple.shade700,
-                          fontSize: 16,
-                        ),
-                        children: [
-                          TextSpan(
-                            text: "Sign Up Here!",
-                            style: TextStyle(
-                              color: Colors.purple.shade600,
-                              fontWeight: FontWeight.bold,
-                              decoration: TextDecoration.underline,
-                            ),
-                          ),
-                        ],
+                    onTap: () {
+                      Navigator.pushReplacementNamed(context, '/signup');
+                    },
+                    child: const Text(
+                      'New here? Sign up!',
+                      style: TextStyle(
+                        fontSize: 16,
+                        color: Colors.white,
+                        decoration: TextDecoration.underline,
                       ),
                     ),
                   ),

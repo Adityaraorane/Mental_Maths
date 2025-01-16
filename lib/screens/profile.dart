@@ -30,8 +30,12 @@ class _ProfileScreenState extends State<ProfileScreen> {
   }
 
   Future<Map<String, dynamic>> fetchUserProfile() async {
+    if (email == null) {
+      throw Exception("Email is null");
+    }
+
     final response = await http.get(
-      Uri.parse('http://localhost:5000/profile?email=$email'),
+      Uri.parse('http://10.0.2.2:3000/profile?email=$email'),
     );
 
     if (response.statusCode == 200) {
@@ -57,7 +61,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
       String base64Image = base64Encode(_imageFile!.readAsBytesSync());
       try {
         final response = await http.post(
-          Uri.parse('http://localhost:5000/updateProfile'),
+          Uri.parse('http://10.0.2.2:3000/updateProfile'),
           headers: {"Content-Type": "application/json"},
           body: json.encode({
             'email': email,
@@ -195,7 +199,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                           ),
                           const SizedBox(height: 10),
                           Text(
-                            'Mobile: ${user?['mobile']}',
+                            'Mobile: ${user?['mobile'] ?? 'Not Available'}',
                             style: TextStyle(
                               fontSize: 18,
                               color: Colors.blue.shade600,
@@ -203,7 +207,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                           ),
                           const SizedBox(height: 10),
                           Text(
-                            'Date of Birth: ${user?['dob']}',
+                            'Date of Birth: ${user?['dob'] ?? 'Not Available'}',
                             style: TextStyle(
                               fontSize: 18,
                               color: Colors.blue.shade600,
