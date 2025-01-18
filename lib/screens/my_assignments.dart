@@ -59,50 +59,54 @@ class _MyAssignmentsScreenState extends State<MyAssignmentsScreen> {
     }
   }
 
-  Future<void> _submitAnswer(String question, String correctAnswer) async {
-    try {
-      final controller = answerControllers[question];
-      if (controller == null) return;
-      
-      String userAnswer = controller.text.trim();
-      if (userAnswer.isEmpty) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Please enter an answer'))
-        );
-        return;
-      }
-
-      bool success = await _apiService.saveUserAnswer(
-        userEmail!,
-        question,
-        userAnswer,
-        DateTime.now().toString()
+Future<void> _submitAnswer(String question, String correctAnswer) async {
+  try {
+    final controller = answerControllers[question];
+    if (controller == null) return;
+    
+    String userAnswer = controller.text.trim();
+    if (userAnswer.isEmpty) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Please enter an answer'))
       );
+      return;
+    }
 
-      if (success) {
-        bool isCorrect = userAnswer == correctAnswer;
-        String message = isCorrect ? 'Correct Answer!' : 'Wrong Answer, Try Again!';
-        
+    bool success = await _apiService.saveUserAnswer(
+      userEmail!,
+      question,
+      userAnswer,
+      DateTime.now().toString()
+    );
+
+    if (success) {
+      if (userAnswer == correctAnswer) {
+        // Increment score on the backend
+        await _apiService.incrementScore(userEmail!);
+
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text(message))
+          SnackBar(content: Text('Correct Answer! Score incremented by 5'))
         );
-
-        if (isCorrect) {
-          controller.clear();
-          await _fetchAssignments(); // Refresh the assignments list
-        }
       } else {
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Failed to submit answer. Please try again.'))
+          SnackBar(content: Text('Wrong Answer, Try Again!'))
         );
       }
-    } catch (e) {
-      print('Error submitting answer: $e');
+      controller.clear();
+      await _fetchAssignments(); // Refresh the assignments list
+    } else {
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('An error occurred. Please try again.'))
+        SnackBar(content: Text('Failed to submit answer. Please try again.'))
       );
     }
+  } catch (e) {
+    print('Error submitting answer: $e');
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(content: Text('An error occurred. Please try again.'))
+    );
   }
+}
+
 
   @override
   Widget build(BuildContext context) {

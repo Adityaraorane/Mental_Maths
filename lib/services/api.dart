@@ -85,32 +85,30 @@ Future<List<Map<String, dynamic>>> getAssignmentsByEmail(String email) async {
   }
 }
 
+Future<bool> incrementScore(String email) async {
+    final response = await http.post(
+      Uri.parse('$baseUrl/incrementScore'),
+      headers: {'Content-Type': 'application/json'},
+      body: jsonEncode({'email': email}),
+    );
 
-  // Save the user's answer
-Future<bool> saveUserAnswer(String email, String question, String userAnswer, String timestamp) async {
-    try {
-      final response = await http.post(
-        Uri.parse('$baseUrl/updateAssignmentAnswer'),
-        headers: {'Content-Type': 'application/json'},
-        body: json.encode({
-          'email': email,
-          'question': question,
-          'userAnswer': userAnswer
-        }),
-      );
-
-      if (response.statusCode == 200) {
-        return true;
-      } else {
-        print('Server responded with status code: ${response.statusCode}');
-        return false;
-      }
-    } catch (e) {
-      print('Error saving answer: $e');
-      return false;
-    }
+    return response.statusCode == 200;
   }
 
+  Future<bool> saveUserAnswer(String email, String question, String userAnswer, String submittedAt) async {
+    final response = await http.post(
+      Uri.parse('$baseUrl/saveUserAnswer'),
+      headers: {'Content-Type': 'application/json'},
+      body: jsonEncode({
+        'email': email,
+        'question': question,
+        'userAnswer': userAnswer,
+        'submittedAt': submittedAt,
+      }),
+    );
+
+    return response.statusCode == 200;
+  }
   
 
 }

@@ -273,6 +273,54 @@ app.post('/updateAssignmentAnswer', async (req, res) => {
     }
 });
 
+app.post('/incrementScore', async (req, res) => {
+    const { email } = req.body;
+
+    try {
+        const user = await User.findOne({ email });
+        if (!user) {
+            return res.status(404).send('User not found');
+        }
+
+        user.points += 5; // Increment the score by 5
+        await user.save();
+
+        res.status(200).json({
+            message: 'Score updated successfully',
+            updatedScore: user.points
+        });
+    } catch (error) {
+        console.error('Error incrementing score:', error);
+        res.status(500).send('Error incrementing score');
+    }
+});
+
+app.post('/saveUserAnswer', async (req, res) => {
+    const { email, question, userAnswer, submittedAt } = req.body;
+
+    try {
+        const assignment = await Assignment.findOneAndUpdate(
+            { email, question },
+            { userAnswer, submittedAt },
+            { new: true } // Return the updated document
+        );
+
+        if (!assignment) {
+            return res.status(404).send('Assignment not found');
+        }
+
+        res.status(200).json({
+            message: 'Answer saved successfully',
+            updatedAssignment: assignment
+        });
+    } catch (error) {
+        console.error('Error saving user answer:', error);
+        res.status(500).send('Error saving answer');
+    }
+});
+
+
+
 
 // Start Server
 const PORT = process.env.PORT || 5000;
