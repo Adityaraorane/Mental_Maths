@@ -29,34 +29,60 @@ class _Level1State extends State<Level1> {
     generateOperations();
   }
 
-  void generateOperations() {
-    Random random = Random();
-    int numOperations = random.nextInt(6) + 3;
-    int currentValue = random.nextInt(9) + 1;
-    List<String> ops = ['+', '-'];
-    operations.add(currentValue.toString());
+void generateOperations() {
+  Random random = Random();
+  int numOperations = random.nextInt(6) + 3;
+  int currentValue = random.nextInt(9) + 1;
+  List<String> ops = ['+', '-'];
+  operations.add(currentValue.toString());
 
-    for (int i = 0; i < numOperations; i++) {
-      String operation = ops[random.nextInt(2)];
-      int nextNum;
-      do {
-        nextNum = random.nextInt(9) + 1;
-      } while (operations.contains('$operation$nextNum'));
-      operations.add(operation);
-      operations.add(nextNum.toString());
+  int consecutiveOpCount = 1; // Count of consecutive operations
+  String lastOperation = '';  // Store last operation used
+  Set<int> usedNumbers = {currentValue};  // To track unique numbers
+
+  for (int i = 0; i < numOperations; i++) {
+    String operation = ops[random.nextInt(2)];
+    int nextNum;
+
+    // Ensure unique numbers
+    do {
+      nextNum = random.nextInt(9) + 1;
+    } while (usedNumbers.contains(nextNum));
+    
+    // Add number to the set of used numbers
+    usedNumbers.add(nextNum);
+
+    // Ensure that no operation is repeated more than 3 times consecutively
+    if (operation == lastOperation) {
+      consecutiveOpCount++;
+    } else {
+      consecutiveOpCount = 1; // Reset count if operation changes
     }
 
-    result = int.parse(operations[0]);
-    for (int i = 1; i < operations.length; i += 2) {
-      int num = int.parse(operations[i + 1]);
-      result += (operations[i] == '+') ? num : -num;
+    // If the operation is repeated more than 3 times, switch it
+    if (consecutiveOpCount > 3) {
+      operation = (operation == '+') ? '-' : '+';
+      consecutiveOpCount = 1; // Reset to 1 as we switched operation
     }
 
-    startDisplaySequence();
+    // Add the operation and number to the operations list
+    operations.add(operation);
+    operations.add(nextNum.toString());
+    lastOperation = operation;  // Update last operation
   }
 
+  // Now calculate the result based on the generated operations
+  result = int.parse(operations[0]);
+  for (int i = 1; i < operations.length; i += 2) {
+    int num = int.parse(operations[i + 1]);
+    result += (operations[i] == '+') ? num : -num;
+  }
+
+  startDisplaySequence();
+}
+
   void startDisplaySequence() {
-    Timer.periodic(const Duration(seconds: 2), (timer) {
+    Timer.periodic(const Duration(seconds: 1), (timer) {
       if (currentIndex < operations.length) {
         setState(() {
           currentDisplay = operations[currentIndex];
@@ -76,72 +102,66 @@ class _Level1State extends State<Level1> {
     Share.share('I scored $result in Level ${widget.level}! Can you beat my score? 🏆');
   }
 
-  void checkAnswer() async {
-    int userAnswer = int.tryParse(answerController.text) ?? 0;
-    SharedPreferences prefs = await SharedPreferences.getInstance();
-    String userEmail = prefs.getString('userEmail') ?? '';
+void checkAnswer() async {
+  int userAnswer = int.tryParse(answerController.text) ?? 0;
+  SharedPreferences prefs = await SharedPreferences.getInstance();
+  String userEmail = prefs.getString('userEmail') ?? '';
 
-    bool isSaved = await apiService.saveQuestion(
-      widget.level,
-      operations.join(' '),
-      result,
-      userAnswer,
-      userEmail,
-    );
+  bool isSaved = await apiService.saveQuestion(
+    widget.level,
+    operations.join(' '),
+    result,
+    userAnswer,
+    userEmail,
+  );
 
-    bool isCorrect = userAnswer == result;
+  bool isCorrect = userAnswer == result;
 
-    showDialog(
-      context: context,
-      builder: (BuildContext context) {
-        return AlertDialog(
-          title: Text(isCorrect ? '✅ Correct!' : '❌ Incorrect!'),
-          content: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              if (!isCorrect) Text('Correct Answer: $result'),
-              const SizedBox(height: 20),
-              Text(isCorrect ? 'Good job! 🎉' : 'Try again!'),
-            ],
-          ),
-          actions: [
-            if (isCorrect) ...[
-              TextButton(
-                onPressed: shareScore, // Share Button Functionality
-                child: const Text('Share Score'),
-              ),
-              TextButton(
-                onPressed: () {
-                  Navigator.pop(context);
-                  setState(() {
-                    generateOperations();
-                  });
-                },
-                child: const Text('Play Again'),
-              ),
-            ],
+  showDialog(
+    context: context,
+    barrierDismissible: false, // Prevent dismiss by clicking outside
+    builder: (BuildContext context) {
+      return AlertDialog(
+        title: Text(isCorrect ? '✅ Correct!' : '❌ Incorrect!'),
+        content: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            if (!isCorrect) Text('Correct Answer: $result'),
+            const SizedBox(height: 20),
+            Text(isCorrect ? 'Good job! 🎉' : 'Try again!'),
+          ],
+        ),
+        actions: [
+          if (isCorrect) ...[
             TextButton(
-              onPressed: () {
-                Navigator.pop(context);
-                Navigator.pushNamed(context, '/rapid_fire'); // Return to Home Button
-              },
-              child: const Text('Return to Home'),
+              onPressed: shareScore, // Share Button Functionality
+              child: const Text('Share Score'),
             ),
           ],
-        );
-      },
-    );
+          TextButton(
+            onPressed: () {
+              Navigator.pop(context);
+              Navigator.pushReplacementNamed(context, '/rapid_fire'); // Return to Home
+            },
+            child: const Text('Return to Home'),
+          ),
+        ],
+      );
+    },
+  );
 
-    if (isSaved) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Question saved to the database!')),
-      );
-    } else {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Error saving question to the database.')),
-      );
-    }
+  if (isSaved) {
+    ScaffoldMessenger.of(context).showSnackBar(
+      const SnackBar(content: Text('Question saved to the database!')),
+    );
+  } else {
+    ScaffoldMessenger.of(context).showSnackBar(
+      const SnackBar(content: Text('Error saving question to the database.')),
+    );
   }
+}
+
+
 
   @override
   Widget build(BuildContext context) {

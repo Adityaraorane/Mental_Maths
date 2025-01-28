@@ -1,8 +1,6 @@
 import 'dart:async';
 import 'dart:math';
 import 'package:flutter/material.dart';
-import 'package:shared_preferences/shared_preferences.dart';
-import 'package:vmaths/services/api.dart';
 import 'package:share_plus/share_plus.dart'; // Import share_plus for sharing functionality
 
 class Level6 extends StatefulWidget {
@@ -23,6 +21,7 @@ class _Level6State extends State<Level6> {
   TextEditingController answerController = TextEditingController();
   late List<String> steps;
   bool showAnswerBox = false;
+  bool isCorrect = false;
 
   @override
   void initState() {
@@ -32,9 +31,19 @@ class _Level6State extends State<Level6> {
 
   void generateDivisionProblem() {
     Random random = Random();
-    divisor = random.nextInt(90) + 10; // Random number between 10 and 99
-    result = random.nextInt(90) + 10; // Random number between 10 and 99
-    dividend = divisor * result; // Ensure the result is a whole number
+    int problemType = random.nextInt(2); // 0 for 4-digit / 3-digit, 1 for 3-digit / 2-digit
+
+    if (problemType == 0) {
+      // Generate a 4-digit / 3-digit division problem
+      divisor = random.nextInt(900) + 100; // Divisor between 100 and 999
+      result = random.nextInt(90) + 10; // Result between 10 and 99
+      dividend = divisor * result; // Ensure exact division (dividend = divisor * result)
+    } else {
+      // Generate a 3-digit / 2-digit division problem
+      divisor = random.nextInt(90) + 10; // Divisor between 10 and 99
+      result = random.nextInt(90) + 10; // Result between 10 and 99
+      dividend = divisor * result; // Ensure exact division (dividend = divisor * result)
+    }
 
     steps = [
       '', // Start with an empty string for the first step
@@ -48,7 +57,7 @@ class _Level6State extends State<Level6> {
 
   void startDisplaySequence() {
     // Reduced delay before showing the first number
-    Future.delayed(const Duration(milliseconds: 500), () {
+    Future.delayed(const Duration(milliseconds: 1000), () {
       Timer.periodic(const Duration(seconds: 1), (timer) {
         if (currentStep < steps.length) {
           setState(() {
@@ -68,7 +77,7 @@ class _Level6State extends State<Level6> {
 
   void checkAnswer() async {
     int userAnswer = int.tryParse(answerController.text) ?? 0;
-    bool isCorrect = userAnswer == result;
+    isCorrect = userAnswer == result;
 
     showDialog(
       context: context,
@@ -84,17 +93,14 @@ class _Level6State extends State<Level6> {
             ],
           ),
           actions: [
-            TextButton(
-              onPressed: () {
-                Navigator.pop(context);
-                if (isCorrect) {
-                  setState(() {
-                    generateDivisionProblem();
-                  });
-                }
-              },
-              child: Text(isCorrect ? 'Next Question' : 'Try Again'),
-            ),
+            if (isCorrect) // Show share button only if the answer is correct
+              TextButton(
+                onPressed: () {
+                  // Share the problem
+                  Share.share('Solve this problem: $dividend ÷ $divisor = $result');
+                },
+                child: const Text('Share'),
+              ),
             TextButton(
               onPressed: () {
                 Navigator.pop(context);
@@ -112,7 +118,7 @@ class _Level6State extends State<Level6> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: Text('Level ${widget.level} - Division Challenge'),
+        title: Text('Level ${widget.level}'),
         backgroundColor: Colors.blue[800],
       ),
       body: Container(

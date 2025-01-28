@@ -37,22 +37,47 @@ class _Level2State extends State<Level2> {
     List<String> ops = ['+', '-'];
     operations.clear();
 
-    // Generate the first number
-    int currentValue = useSingleDigit
-        ? random.nextInt(9) + 1 // Single-digit number
-        : random.nextInt(90) + 10; // Two-digit number
+    if (useSingleDigit) {
+      // Case 1: 10 random operations with single digit numbers
+      Set<int> usedNumbers = Set<int>();
+      int currentValue = random.nextInt(9) + 1; // Single-digit number
+      usedNumbers.add(currentValue);
+      operations.add(currentValue.toString());
 
-    operations.add(currentValue.toString());
+      for (int i = 0; i < numCount - 1; i++) {
+        String operation = ops[random.nextInt(2)]; // Randomly select + or -
+        int nextNum;
+        
+        // Ensure numbers are distinct
+        do {
+          nextNum = random.nextInt(9) + 1; // Single-digit number
+        } while (usedNumbers.contains(nextNum));
+        
+        usedNumbers.add(nextNum);
+        
+        operations.add(operation);
+        operations.add(nextNum.toString());
+      }
 
-    // Generate operations and numbers
-    for (int i = 0; i < numCount - 1; i++) {
-      String operation = ops[random.nextInt(2)]; // Randomly select + or -
-      int nextNum = useSingleDigit
-          ? random.nextInt(9) + 1 // Single-digit number
-          : random.nextInt(90) + 10; // Two-digit number
+    } else {
+      // Case 2: 3 random operations with double-digit numbers
+      int currentValue = random.nextInt(90) + 10; // Two-digit number
+      operations.add(currentValue.toString());
 
-      operations.add(operation);
-      operations.add(nextNum.toString());
+      for (int i = 0; i < numCount - 1; i++) {
+        String operation = ops[random.nextInt(2)]; // Randomly select + or -
+        int nextNum = random.nextInt(90) + 10; // Two-digit number
+        operations.add(operation);
+        operations.add(nextNum.toString());
+      }
+
+      // Ensure at least one addition and one subtraction
+      if (!operations.contains('+')) {
+        operations[operations.length - 2] = '+'; // Force addition as the last operation
+      }
+      if (!operations.contains('-')) {
+        operations[operations.length - 2] = '-'; // Force subtraction as the last operation
+      }
     }
 
     // Calculate the result
@@ -120,15 +145,7 @@ class _Level2State extends State<Level2> {
                 onPressed: shareScore, // Share Button Functionality
                 child: const Text('Share Score'),
               ),
-              TextButton(
-                onPressed: () {
-                  Navigator.pop(context);
-                  setState(() {
-                    generateOperations();
-                  });
-                },
-                child: const Text('Play Again'),
-              ),
+
             ],
             TextButton(
               onPressed: () {

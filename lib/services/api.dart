@@ -2,7 +2,7 @@ import 'dart:convert';
 import 'package:http/http.dart' as http;
 
 class ApiService {
-  final String baseUrl = 'http://192.168.1.104:5000';
+  final String baseUrl = 'http://localhost:5000';
 
   Future<bool> signup(String firstName, String lastName, String dob, String mobile, String email, String password) async {
     try {
@@ -109,6 +109,5 @@ Future<bool> incrementScore(String email) async {
 
     return response.statusCode == 200;
   }
-  
 
 }

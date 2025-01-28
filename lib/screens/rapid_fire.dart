@@ -5,6 +5,8 @@ import 'package:vmaths/screens/level3.dart';
 import 'package:vmaths/screens/level4.dart';
 import 'package:vmaths/screens/level5.dart';
 import 'package:vmaths/screens/level6.dart';
+import 'package:vmaths/screens/level7.dart';  
+import 'package:vmaths/screens/level8.dart';  
 
 class RapidFireScreen extends StatelessWidget {
   @override
@@ -45,7 +47,7 @@ class RapidFireScreen extends StatelessWidget {
                     crossAxisSpacing: 20,
                     mainAxisSpacing: 20,
                   ),
-                  itemCount: 6,
+                  itemCount: 8,  // Update to 8 levels
                   itemBuilder: (context, index) {
                     return ElevatedButton(
                       onPressed: () {
@@ -92,6 +94,10 @@ class RapidFireScreen extends StatelessWidget {
         return Level5(level: level);
       case 6:
         return Level6(level: level);
+      case 7:
+        return Level7(level: level);  
+      case 8:
+        return Level8(level: level);  
       default:
         return Level1(level: 1);
     }

@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:vmaths/screens/rapid_fire.dart';
 import 'screens/login.dart';
 import 'screens/signup.dart';
 import 'screens/home.dart';
@@ -24,6 +25,7 @@ class MyApp extends StatelessWidget {
         '/signup': (context) => const SignupScreen(),
         '/home': (context) => const HomeScreen(),
         '/leaderboard': (context) => Leaderboard(),
+        '/rapid_fire': (context) => RapidFireScreen(),
       },
     );
   }

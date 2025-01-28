@@ -18,7 +18,7 @@ class _LeaderboardState extends State<Leaderboard> {
 
   Future<void> fetchLeaderboard() async {
     try {
-      final response = await http.get(Uri.parse('http://192.168.1.104:5000/leaderboard'));
+      final response = await http.get(Uri.parse('http://localhost:5000/leaderboard'));
       if (response.statusCode == 200) {
         setState(() {
           players = json.decode(response.body);
