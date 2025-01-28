@@ -85,7 +85,7 @@ class Dashboard extends StatelessWidget {
 
 class UsersScreen extends StatelessWidget {
   Future<List<Map<String, dynamic>>> fetchUsers() async {
-    final response = await http.get(Uri.parse('http://localhost:5000/users'));
+    final response = await http.get(Uri.parse('http://192.168.1.104:5000/users'));
 
     if (response.statusCode == 200) {
       final List<dynamic> usersJson = json.decode(response.body);
@@ -158,7 +158,7 @@ class _AssignmentsScreenState extends State<AssignmentsScreen> {
     }
 
     final response = await http.post(
-      Uri.parse('http://localhost:5000/assignments'),
+      Uri.parse('http://192.168.1.104:5000/assignments'),
       headers: {'Content-Type': 'application/json'},
       body: json.encode({
         'email': email,

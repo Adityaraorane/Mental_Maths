@@ -92,12 +92,28 @@ class _Level5State extends State<Level5> {
     });
   }
 
+  void shareScore() {
+    Share.share('I scored $result in Level ${widget.level}! Can you beat my score? 🏆');
+  }
+
   void checkAnswer() async {
     int userAnswer = int.tryParse(answerController.text) ?? 0;
+    SharedPreferences prefs = await SharedPreferences.getInstance();
+    String userEmail = prefs.getString('userEmail') ?? '';
+
+    bool isSaved = await apiService.saveQuestion(
+      widget.level,
+      operations.join(' '),
+      result,
+      userAnswer,
+      userEmail,
+    );
+
     bool isCorrect = userAnswer == result;
 
     showDialog(
       context: context,
+      barrierDismissible: false, // Prevent dismiss by clicking outside
       builder: (BuildContext context) {
         return AlertDialog(
           title: Text(isCorrect ? '✅ Correct!' : '❌ Incorrect!'),
@@ -110,21 +126,16 @@ class _Level5State extends State<Level5> {
             ],
           ),
           actions: [
+            if (isCorrect) ...[
+              TextButton(
+                onPressed: shareScore, // Share Button Functionality
+                child: const Text('Share Score'),
+              ),
+            ],
             TextButton(
               onPressed: () {
                 Navigator.pop(context);
-                if (isCorrect) {
-                  setState(() {
-                    generateOperations();
-                  });
-                }
-              },
-              child: Text(isCorrect ? 'Next Question' : 'Try Again'),
-            ),
-            TextButton(
-              onPressed: () {
-                Navigator.pop(context);
-                Navigator.pushNamed(context, '/rapid_fire'); // Return to Home
+                Navigator.pushReplacementNamed(context, '/rapid_fire'); // Return to Home
               },
               child: const Text('Return to Home'),
             ),
@@ -132,6 +143,16 @@ class _Level5State extends State<Level5> {
         );
       },
     );
+
+    if (isSaved) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Question saved to the database!')),
+      );
+    } else {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Error saving question to the database.')),
+      );
+    }
   }
 
   @override

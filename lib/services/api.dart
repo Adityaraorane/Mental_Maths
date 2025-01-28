@@ -2,7 +2,7 @@ import 'dart:convert';
 import 'package:http/http.dart' as http;
 
 class ApiService {
-  final String baseUrl = 'http://localhost:5000';
+  final String baseUrl = 'http://192.168.1.104:5000';
 
   Future<bool> signup(String firstName, String lastName, String dob, String mobile, String email, String password) async {
     try {
@@ -43,6 +43,31 @@ class ApiService {
       return false;
     }
   }
+
+  Future<bool> loginWithGoogle(String email, String firstName, String lastName) async {
+  try {
+    final response = await http.post(
+      Uri.parse('$baseUrl/google-login'),  // Adjust the URL to match your backend endpoint
+      headers: {'Content-Type': 'application/json'},
+      body: json.encode({
+        'email': email,
+        'firstName': firstName,
+        'lastName': lastName,
+      }),
+    );
+
+    if (response.statusCode == 200) {
+      return true;  // Login was successful
+    } else {
+      print('Failed response: ${response.body}');
+      return false;  // Login failed (non-200 status code)
+    }
+  } catch (e) {
+    print('Google login error: $e');
+    return false;  // Return false in case of any error
+  }
+}
+
 
   Future<bool> saveQuestion(int level, String question, int correctAnswer, int userAnswer, String userEmail) async {
   try {

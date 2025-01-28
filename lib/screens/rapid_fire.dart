@@ -59,7 +59,7 @@ class RapidFireScreen extends StatelessWidget {
                         );
                       },
                       style: ElevatedButton.styleFrom(
-                        backgroundColor: Colors.blueAccent,
+                        backgroundColor: const Color.fromARGB(255, 112, 151, 217),
                         padding: const EdgeInsets.all(24),
                         shape: RoundedRectangleBorder(
                           borderRadius: BorderRadius.circular(15),

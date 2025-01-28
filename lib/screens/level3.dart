@@ -139,7 +139,7 @@ class _Level3State extends State<Level3> {
             TextButton(
               onPressed: () {
                 Navigator.pop(context);
-                Navigator.pushNamed(context, '/rapid_fire'); // Return to Home
+                Navigator.pushNamed(context, '/home'); // Return to Home
               },
               child: const Text('Return to Home'),
             ),
@@ -154,10 +154,10 @@ class _Level3State extends State<Level3> {
     return Scaffold(
       appBar: AppBar(
         title: Text('Level ${widget.level} - Math Challenge'),
-        backgroundColor: Colors.blue[800],
+        backgroundColor: Colors.green[800],
       ),
       body: Container(
-        color: Colors.blue[50],
+        color: Colors.green[50],
         padding: const EdgeInsets.all(16.0),
         child: Center(
           child: Column(
@@ -175,10 +175,10 @@ class _Level3State extends State<Level3> {
                     Container(
                       padding: const EdgeInsets.all(8),
                       decoration: BoxDecoration(
-                        border: Border.all(color: Colors.blue),
+                        border: Border.all(color: Colors.green),
                         borderRadius: BorderRadius.circular(12),
                         boxShadow: [
-                          BoxShadow(color: Colors.blue.shade200, blurRadius: 8)
+                          BoxShadow(color: Colors.green.shade200, blurRadius: 8)
                         ],
                       ),
                       child: TextField(

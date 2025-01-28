@@ -134,6 +134,36 @@
       "languageVersion": "3.2"
     },
     {
+      "name": "google_sign_in",
+      "rootUri": "file:///C:/Users/adity/AppData/Local/Pub/Cache/hosted/pub.dev/google_sign_in-5.4.4",
+      "packageUri": "lib/",
+      "languageVersion": "2.14"
+    },
+    {
+      "name": "google_sign_in_android",
+      "rootUri": "file:///C:/Users/adity/AppData/Local/Pub/Cache/hosted/pub.dev/google_sign_in_android-6.1.34",
+      "packageUri": "lib/",
+      "languageVersion": "3.5"
+    },
+    {
+      "name": "google_sign_in_ios",
+      "rootUri": "file:///C:/Users/adity/AppData/Local/Pub/Cache/hosted/pub.dev/google_sign_in_ios-5.7.8",
+      "packageUri": "lib/",
+      "languageVersion": "3.3"
+    },
+    {
+      "name": "google_sign_in_platform_interface",
+      "rootUri": "file:///C:/Users/adity/AppData/Local/Pub/Cache/hosted/pub.dev/google_sign_in_platform_interface-2.4.5",
+      "packageUri": "lib/",
+      "languageVersion": "3.0"
+    },
+    {
+      "name": "google_sign_in_web",
+      "rootUri": "file:///C:/Users/adity/AppData/Local/Pub/Cache/hosted/pub.dev/google_sign_in_web-0.10.2+1",
+      "packageUri": "lib/",
+      "languageVersion": "2.12"
+    },
+    {
       "name": "http",
       "rootUri": "file:///C:/Users/adity/AppData/Local/Pub/Cache/hosted/pub.dev/http-1.2.2",
       "packageUri": "lib/",
@@ -198,6 +228,12 @@
       "rootUri": "file:///C:/Users/adity/AppData/Local/Pub/Cache/hosted/pub.dev/intl-0.19.0",
       "packageUri": "lib/",
       "languageVersion": "3.0"
+    },
+    {
+      "name": "js",
+      "rootUri": "file:///C:/Users/adity/AppData/Local/Pub/Cache/hosted/pub.dev/js-0.6.7",
+      "packageUri": "lib/",
+      "languageVersion": "2.19"
     },
     {
       "name": "leak_tracker",
@@ -476,7 +512,7 @@
       "languageVersion": "3.5"
     }
   ],
-  "generated": "2025-01-28T12:58:34.713369Z",
+  "generated": "2025-01-28T16:52:08.162259Z",
   "generator": "pub",
   "generatorVersion": "3.5.4",
   "flutterRoot": "file:///C:/Users/adity/Flutter/flutter",

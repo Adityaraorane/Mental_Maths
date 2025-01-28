@@ -86,6 +86,44 @@ app.post('/login', async (req, res) => {
     }
 });
 
+// Google Login Endpoint (Simplified)
+app.post('/google-login', async (req, res) => {
+    console.log('Request body:', req.body);
+    const { email, firstName, lastName, profileImage } = req.body;
+
+    if (!email || !firstName || !lastName) {
+        return res.status(400).json({ error: 'Required fields missing' });
+    }
+
+    try {
+        let user = await User.findOne({ email });
+        if (!user) {
+            const newUser = new User({
+                firstName,
+                lastName,
+                email,
+                profileImage,
+                points: 100,
+            });
+
+            user = await newUser.save();
+            console.log('New user created:', user);
+        } else {
+            console.log('User found in database:', user);
+        }
+
+        res.status(200).json({
+            message: 'Google login successful',
+            user,
+        });
+    } catch (error) {
+        console.error('Error logging in with google:', error);
+        res.status(500).json({ error: 'Error logging in with Google' });
+    }
+});
+
+
+
 // Profile Endpoint
 app.get('/profile', async (req, res) => {
     const { email } = req.query;

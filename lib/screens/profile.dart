@@ -31,7 +31,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
 
   Future<Map<String, dynamic>> fetchUserProfile() async {
     final response = await http.get(
-      Uri.parse('http://localhost:5000/profile?email=$email'),
+      Uri.parse('http://192.168.1.104:5000/profile?email=$email'),
     );
 
     if (response.statusCode == 200) {
